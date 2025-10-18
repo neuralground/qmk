@@ -1,6 +1,8 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "title": "QMK QVM Graph",
+  "$id": "https://qmk.dev/schemas/qvm-0.1.json",
+  "title": "QVM Graph Specification v0.1",
+  "description": "Quantum Virtual Machine (QVM) graph format for the Quantum Microkernel (QMK). Defines a declarative DAG of quantum operations over linear, capability-guarded handles.",
   "type": "object",
   "required": [
     "version",
@@ -11,16 +13,19 @@
   "properties": {
     "version": {
       "type": "string",
-      "const": "0.1"
+      "const": "0.1",
+      "description": "QVM format version. Current version is 0.1."
     },
     "program": {
       "type": "object",
+      "description": "The quantum program as a directed acyclic graph (DAG) of operations.",
       "required": [
         "nodes"
       ],
       "properties": {
         "nodes": {
           "type": "array",
+          "description": "Array of operation nodes in the DAG. Order does not imply execution order; dependencies are determined by handle flow.",
           "items": {
             "type": "object",
             "required": [
@@ -29,16 +34,28 @@
             ],
             "properties": {
               "id": {
-                "type": "string"
+                "type": "string",
+                "description": "Unique identifier for this node within the graph.",
+                "pattern": "^[a-zA-Z_][a-zA-Z0-9_]*$"
               },
               "op": {
-                "type": "string"
+                "type": "string",
+                "description": "Operation opcode (e.g., APPLY_H, MEASURE_Z, ALLOC_LQ).",
+                "enum": [
+                  "ALLOC_LQ", "FREE_LQ", "FENCE_EPOCH", "BAR_REGION",
+                  "APPLY_H", "APPLY_S", "APPLY_X", "APPLY_Y", "APPLY_Z", "APPLY_CNOT",
+                  "RESET", "MEASURE_Z", "MEASURE_X",
+                  "TELEPORT_CNOT", "INJECT_T_STATE", "OPEN_CHAN", "USE_CHAN", "CLOSE_CHAN",
+                  "COND_PAULI", "SET_POLICY"
+                ]
               },
               "args": {
-                "type": "object"
+                "type": "object",
+                "description": "Operation-specific arguments (e.g., allocation profile, rotation angles, policy settings)."
               },
               "inputs": {
                 "type": "array",
+                "description": "Event handles consumed by this operation (for conditional operations and guards).",
                 "items": {
                   "type": "string"
                 },
@@ -46,6 +63,7 @@
               },
               "produces": {
                 "type": "array",
+                "description": "Event handles produced by this operation (e.g., measurement outcomes).",
                 "items": {
                   "type": "string"
                 },
@@ -53,6 +71,7 @@
               },
               "vqs": {
                 "type": "array",
+                "description": "Virtual qubit (VQ) handles consumed/produced by this operation. Linear resources with single-owner semantics.",
                 "items": {
                   "type": "string"
                 },
@@ -60,6 +79,7 @@
               },
               "chs": {
                 "type": "array",
+                "description": "Channel (CH) handles consumed/produced by this operation. Linear resources representing entanglement.",
                 "items": {
                   "type": "string"
                 },
@@ -67,19 +87,24 @@
               },
               "caps": {
                 "type": "array",
+                "description": "Capability tokens required by this operation (e.g., CAP_ALLOC, CAP_TELEPORT).",
                 "items": {
-                  "type": "string"
+                  "type": "string",
+                  "pattern": "^CAP_[A-Z_]+$"
                 },
                 "default": []
               },
               "guard": {
                 "type": "object",
+                "description": "Optional guard predicate for conditional execution based on measurement outcome.",
                 "properties": {
                   "event": {
-                    "type": "string"
+                    "type": "string",
+                    "description": "Event handle to check (must be produced by a prior measurement)."
                   },
                   "equals": {
                     "type": "integer",
+                    "description": "Expected event value (0 or 1). Node executes only if event matches this value.",
                     "enum": [
                       0,
                       1
@@ -89,7 +114,8 @@
                 "required": [
                   "event",
                   "equals"
-                ]
+                ],
+                "additionalProperties": false
               }
             }
           }
@@ -98,24 +124,34 @@
     },
     "resources": {
       "type": "object",
+      "description": "Declaration of all resource handles used in the program.",
       "properties": {
         "vqs": {
           "type": "array",
+          "description": "All virtual qubit handles used in the program.",
           "items": {
-            "type": "string"
-          }
+            "type": "string",
+            "pattern": "^[a-zA-Z_][a-zA-Z0-9_]*$"
+          },
+          "uniqueItems": true
         },
         "chs": {
           "type": "array",
+          "description": "All channel handles used in the program.",
           "items": {
-            "type": "string"
-          }
+            "type": "string",
+            "pattern": "^[a-zA-Z_][a-zA-Z0-9_]*$"
+          },
+          "uniqueItems": true
         },
         "events": {
           "type": "array",
+          "description": "All event handles (measurement outcomes) used in the program.",
           "items": {
-            "type": "string"
-          }
+            "type": "string",
+            "pattern": "^[a-zA-Z_][a-zA-Z0-9_]*$"
+          },
+          "uniqueItems": true
         }
       },
       "required": [
@@ -126,9 +162,18 @@
     },
     "caps": {
       "type": "array",
+      "description": "Capabilities required by this program. Kernel verifies tenant possesses these capabilities before execution.",
       "items": {
-        "type": "string"
-      }
+        "type": "string",
+        "pattern": "^CAP_[A-Z_]+$",
+        "enum": [
+          "CAP_ALLOC",
+          "CAP_TELEPORT",
+          "CAP_MAGIC",
+          "CAP_LINK"
+        ]
+      },
+      "uniqueItems": true
     }
   }
 }
