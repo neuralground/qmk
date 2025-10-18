@@ -29,24 +29,54 @@ This will:
 1) validate the sample QVM graphs, and
 2) execute them on the QMK kernel simulator (with synthetic measurement outcomes).
 
-## Documentation
+## Documentation Index
 
-### Core Specifications
-- **[QVM Specification](docs/QVM-spec.md)** — Comprehensive specification modeled after the JVM spec, covering:
-  - Introduction and design principles
-  - Resource handles and graph structure
-  - Verification and execution semantics
-  - Security model and conformance
-- **[Instruction Reference](docs/QVM-instruction-reference.md)** — Detailed documentation for all QVM opcodes
-- **[Design & Architecture](docs/design-architecture-spec.md)** — System architecture and roadmap
+### 📖 Getting Started (Read in Order)
 
-### Examples
-See [`qvm/examples/`](qvm/examples/) for sample programs:
-- `bell_teleport_cnot.qvm.json` — Bell state preparation
-- `teleportation_demo.qvm.json` — Full quantum teleportation protocol
-- `ghz_state.qvm.json` — 4-qubit GHZ state
-- `conditional_correction.qvm.json` — Measurement-based control flow
-- `reversible_segment.qvm.json` — REV segment demonstration
+1. **[Overview](docs/overview.md)** — High-level introduction to QMK
+2. **[Design & Architecture](docs/design-architecture-spec.md)** — System architecture, goals, and roadmap
+3. **[QVM Specification](docs/QVM-spec.md)** ⭐ — **Complete QVM specification** (primary reference)
+   - Introduction and design principles
+   - Resource handles (VQ, CH, EV, CAP, BND)
+   - Graph structure and format
+   - Verification rules (linearity, capabilities, DAG)
+   - Execution semantics and reversibility
+   - Security model and conformance
+   - Future extensions
+4. **[QVM Instruction Reference](docs/QVM-instruction-reference.md)** — Detailed opcode documentation
+   - All 20 operations with examples
+   - Capability requirements
+   - Reversibility classification
+
+### 🔧 Technical Deep Dives
+
+- **[Architecture](docs/architecture.md)** — Layered architecture details
+- **[qSyscall ABI](docs/qsyscall-abi.md)** — User ↔ Kernel interface
+- **[Security Model](docs/security-model.md)** — Capability security and isolation
+- **[Reversibility](docs/reversibility.md)** — REV segments and uncomputation
+- **[Scheduling](docs/scheduling.md)** — Epoch-based scheduling model
+- **[Testing](docs/testing.md)** — Testing strategy
+
+### 💻 Examples & Tools
+
+- **[Example Programs](qvm/examples/README.md)** — Comprehensive guide to all examples
+  - `bell_teleport_cnot.qvm.json` — Bell state preparation
+  - `teleportation_demo.qvm.json` — Full quantum teleportation protocol
+  - `ghz_state.qvm.json` — 4-qubit GHZ state
+  - `conditional_correction.qvm.json` — Measurement-based control flow
+  - `reversible_segment.qvm.json` — REV segment demonstration
+- **[JSON Schema](qvm/qvm_schema.json)** — Canonical QVM format schema
+- **[Validator Tool](qvm/tools/qvm_validate.py)** — Graph validation with linearity checks
+
+### 📚 Reference Materials
+
+**Suggested Reading Order for New Contributors:**
+1. Start with [Overview](docs/overview.md) for context
+2. Read [Design & Architecture](docs/design-architecture-spec.md) for the big picture
+3. Study [QVM Specification](docs/QVM-spec.md) for complete details
+4. Explore [Example Programs](qvm/examples/README.md) to see QVM in action
+5. Consult [Instruction Reference](docs/QVM-instruction-reference.md) as needed
+6. Deep dive into specific topics (security, scheduling, etc.) as relevant
 
 ## Status
 This is a pedagogical prototype to make the specification concrete. **Phase 1 complete:**
