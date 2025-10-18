@@ -1,0 +1,72 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "qSyscall Messages",
+  "type": "object",
+  "oneOf": [
+    {
+      "properties": {
+        "type": {
+          "const": "q_alloc"
+        },
+        "n": {
+          "type": "integer"
+        },
+        "profile": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "type",
+        "n"
+      ]
+    },
+    {
+      "properties": {
+        "type": {
+          "const": "q_release"
+        },
+        "vqs": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      },
+      "required": [
+        "type",
+        "vqs"
+      ]
+    },
+    {
+      "properties": {
+        "type": {
+          "const": "q_submit"
+        },
+        "graph": {
+          "type": "object"
+        },
+        "policy": {
+          "type": "object"
+        }
+      },
+      "required": [
+        "type",
+        "graph"
+      ]
+    },
+    {
+      "properties": {
+        "type": {
+          "const": "q_status"
+        },
+        "job_id": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "type",
+        "job_id"
+      ]
+    }
+  ]
+}

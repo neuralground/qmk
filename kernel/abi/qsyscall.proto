@@ -1,0 +1,16 @@
+syntax = "proto3";
+package qmk;
+
+message QAlloc { uint32 n = 1; string profile = 2; }
+message QRelease { repeated string vqs = 1; }
+message QSubmit { string graph_json = 1; string policy_json = 2; }
+message QStatus { string job_id = 1; }
+
+message Syscall {
+  oneof kind {
+    QAlloc alloc = 1;
+    QRelease release = 2;
+    QSubmit submit = 3;
+    QStatus status = 4;
+  }
+}

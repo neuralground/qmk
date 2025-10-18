@@ -1,0 +1,81 @@
+{
+  "version": "0.1",
+  "program": {
+    "nodes": [
+      {
+        "id": "a1",
+        "op": "ALLOC_LQ",
+        "args": {
+          "n": 1,
+          "profile": "logical:SHYPS(d=9)"
+        },
+        "vqs": [
+          "q1"
+        ],
+        "caps": [
+          "CAP_ALLOC"
+        ]
+      },
+      {
+        "id": "a2",
+        "op": "APPLY_H",
+        "vqs": [
+          "q1"
+        ]
+      },
+      {
+        "id": "a3",
+        "op": "APPLY_S",
+        "vqs": [
+          "q1"
+        ]
+      },
+      {
+        "id": "a4",
+        "op": "FENCE_EPOCH"
+      },
+      {
+        "id": "a5",
+        "op": "MEASURE_Z",
+        "vqs": [
+          "q1"
+        ],
+        "produces": [
+          "m1"
+        ]
+      },
+      {
+        "id": "a6",
+        "op": "COND_PAULI",
+        "args": {
+          "mask": "Z"
+        },
+        "vqs": [
+          "q1"
+        ],
+        "inputs": [
+          "m1"
+        ]
+      },
+      {
+        "id": "a7",
+        "op": "FREE_LQ",
+        "vqs": [
+          "q1"
+        ]
+      }
+    ]
+  },
+  "resources": {
+    "vqs": [
+      "q1"
+    ],
+    "chs": [],
+    "events": [
+      "m1"
+    ]
+  },
+  "caps": [
+    "CAP_ALLOC"
+  ]
+}
