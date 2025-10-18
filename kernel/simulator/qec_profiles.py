@@ -10,8 +10,15 @@ with Azure QRE parameter format. Each profile specifies:
 """
 
 from dataclasses import dataclass
-from typing import Dict, Any
+from typing import Dict, Any, Optional
 import math
+
+from .azure_qre_compat import (
+    create_qre_config,
+    compute_logical_qubit_resources,
+    AZURE_QUBIT_PARAMS,
+    AZURE_QEC_SCHEMES,
+)
 
 
 @dataclass
@@ -97,6 +104,68 @@ class QECProfile:
             t2_us=err["t2_us"],
             decoder_type=dec.get("type", "MWPM"),
             decoder_cycle_time_us=dec.get("cycle_time_us", 0.1)
+        )
+    
+    @classmethod
+    def from_azure_qre(cls, qubit_params: str = "qubit_gate_ns_e3",
+                       qec_scheme: str = "surface_code",
+                       code_distance: int = 9,
+                       custom_params: Optional[Dict[str, Any]] = None) -> 'QECProfile':
+        """
+        Create profile from Azure QRE configuration.
+        
+        Args:
+            qubit_params: Azure QRE qubit parameter name
+            qec_scheme: QEC scheme name ("surface_code" or "floquet_code")
+            code_distance: Code distance
+            custom_params: Optional custom parameter overrides
+        
+        Returns:
+            QECProfile instance
+        
+        Example:
+            >>> profile = QECProfile.from_azure_qre(
+            ...     qubit_params="qubit_gate_ns_e4",
+            ...     qec_scheme="surface_code",
+            ...     code_distance=9
+            ... )
+        """
+        # Create Azure QRE config
+        qre_config = create_qre_config(qubit_params, qec_scheme, code_distance, custom_params)
+        
+        # Compute resources
+        resources = compute_logical_qubit_resources(qre_config)
+        
+        # Extract error rates from qubit params
+        qubits = qre_config["qubitParams"]
+        
+        # Get appropriate error rate based on instruction set
+        if qubits.get("instructionSet") == "GateBased":
+            gate_error = qubits.get("oneQubitGateErrorRate", 1e-3)
+            measurement_error = qubits.get("oneQubitMeasurementErrorRate", 1e-3)
+        else:  # Majorana
+            gate_error = qubits.get("twoQubitJointMeasurementErrorRate", 1e-4)
+            measurement_error = qubits.get("oneQubitMeasurementErrorRate", 1e-4)
+        
+        # Estimate idle error rate (typically 10x better than gate errors)
+        idle_error = gate_error / 10
+        
+        # Use default coherence times (can be customized)
+        t1_us = 100.0
+        t2_us = 80.0
+        
+        return cls(
+            code_family=qec_scheme,
+            code_distance=resources["code_distance"],
+            physical_qubit_count=resources["physical_qubits_per_logical"],
+            logical_cycle_time_us=resources["logical_cycle_time_us"],
+            physical_gate_error_rate=gate_error,
+            measurement_error_rate=measurement_error,
+            idle_error_rate=idle_error,
+            t1_us=t1_us,
+            t2_us=t2_us,
+            decoder_type="MWPM",
+            decoder_cycle_time_us=resources["logical_cycle_time_us"] / code_distance
         )
 
 
