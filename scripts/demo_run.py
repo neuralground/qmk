@@ -1,10 +1,12 @@
 #!/usr/bin/env python3
 import json, subprocess, sys, os
-from kernel.simulator.qmk_kernel import QMKKernel
-from runtime.client.qvm_client import QVMClient
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 ROOT = os.path.dirname(HERE)
+sys.path.insert(0, ROOT)
+
+from kernel.simulator.qmk_kernel import QMKKernel
+from runtime.client.qvm_client import QVMClient
 
 def run_validator(path):
     tool = os.path.join(ROOT, "qvm", "tools", "qvm_validate.py")
