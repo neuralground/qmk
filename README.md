@@ -79,11 +79,33 @@ This will:
 6. Deep dive into specific topics (security, scheduling, etc.) as relevant
 
 ## Status
-This is a pedagogical prototype to make the specification concrete. **Phase 1 complete:**
-- ✅ Comprehensive QVM specification (100+ pages)
+
+**Phase 1 ✅ COMPLETE** - Specifications & Validation
+- ✅ Comprehensive QVM specification (690+ lines, JVM-style)
+- ✅ QVM instruction reference (20 operations documented)
 - ✅ JSON Schema with validation rules
 - ✅ Enhanced validator (linearity, capabilities, DAG, REV segments)
-- ✅ Example programs demonstrating key features
-- ✅ Minimal kernel simulator
+- ✅ qSyscall ABI specification (600+ lines)
+- ✅ Azure QRE compatibility layer
+- ✅ Example programs (5 examples)
 
-**Not yet implemented:** Real QEC decoding, fault injection, distributed teleportation channels, formal verification, multi-tenant isolation.
+**Phase 2 🚧 IN PROGRESS** - QMK Kernel Implementation
+- ✅ Logical qubit simulator with error models
+- ✅ QEC profiles (Surface, SHYPS, Bacon-Shor)
+- ✅ Azure QRE full compatibility
+- ✅ Enhanced kernel executor (all QVM operations)
+- ✅ Resource manager with telemetry
+- ✅ **97 automated tests (100% passing)**
+- 🚧 qSyscall ABI handlers (next)
+- 🚧 Session and job management (next)
+
+**Test Coverage:**
+```
+Total Tests: 97
+  Unit Tests: 87
+  Integration Tests: 10
+Success Rate: 100%
+Execution Time: < 0.01s
+```
+
+**Not yet implemented:** qSyscall RPC server, multi-tenant isolation, formal verification, real hardware backends.
