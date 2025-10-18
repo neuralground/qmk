@@ -1,0 +1,83 @@
+{
+  "version": "0.1",
+  "program": {
+    "nodes": [
+      {
+        "id": "alloc1",
+        "op": "ALLOC_LQ",
+        "args": {
+          "n": 4,
+          "profile": "logical:Surface(d=7)"
+        },
+        "vqs": ["q0", "q1", "q2", "q3"],
+        "caps": ["CAP_ALLOC"]
+      },
+      {
+        "id": "h1",
+        "op": "APPLY_H",
+        "vqs": ["q0"]
+      },
+      {
+        "id": "cnot1",
+        "op": "APPLY_CNOT",
+        "vqs": ["q0", "q1"]
+      },
+      {
+        "id": "cnot2",
+        "op": "APPLY_CNOT",
+        "vqs": ["q0", "q2"]
+      },
+      {
+        "id": "cnot3",
+        "op": "APPLY_CNOT",
+        "vqs": ["q0", "q3"]
+      },
+      {
+        "id": "fence1",
+        "op": "FENCE_EPOCH"
+      },
+      {
+        "id": "bar1",
+        "op": "BAR_REGION",
+        "args": {
+          "tag": "ghz_measurement_batch"
+        }
+      },
+      {
+        "id": "m0",
+        "op": "MEASURE_Z",
+        "vqs": ["q0"],
+        "produces": ["m0"]
+      },
+      {
+        "id": "m1",
+        "op": "MEASURE_Z",
+        "vqs": ["q1"],
+        "produces": ["m1"]
+      },
+      {
+        "id": "m2",
+        "op": "MEASURE_Z",
+        "vqs": ["q2"],
+        "produces": ["m2"]
+      },
+      {
+        "id": "m3",
+        "op": "MEASURE_Z",
+        "vqs": ["q3"],
+        "produces": ["m3"]
+      },
+      {
+        "id": "free1",
+        "op": "FREE_LQ",
+        "vqs": ["q0", "q1", "q2", "q3"]
+      }
+    ]
+  },
+  "resources": {
+    "vqs": ["q0", "q1", "q2", "q3"],
+    "chs": [],
+    "events": ["m0", "m1", "m2", "m3"]
+  },
+  "caps": ["CAP_ALLOC"]
+}

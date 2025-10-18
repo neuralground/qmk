@@ -1,0 +1,71 @@
+{
+  "version": "0.1",
+  "program": {
+    "nodes": [
+      {
+        "id": "alloc1",
+        "op": "ALLOC_LQ",
+        "args": {
+          "n": 2,
+          "profile": "logical:SHYPS(d=9)"
+        },
+        "vqs": ["q0", "q1"],
+        "caps": ["CAP_ALLOC"]
+      },
+      {
+        "id": "h1",
+        "op": "APPLY_H",
+        "vqs": ["q0"]
+      },
+      {
+        "id": "cnot1",
+        "op": "APPLY_CNOT",
+        "vqs": ["q0", "q1"]
+      },
+      {
+        "id": "m1",
+        "op": "MEASURE_Z",
+        "vqs": ["q0"],
+        "produces": ["m0"]
+      },
+      {
+        "id": "fence1",
+        "op": "FENCE_EPOCH"
+      },
+      {
+        "id": "cond_x",
+        "op": "APPLY_X",
+        "vqs": ["q1"],
+        "guard": {
+          "event": "m0",
+          "equals": 1
+        }
+      },
+      {
+        "id": "cond_nop",
+        "op": "FENCE_EPOCH",
+        "guard": {
+          "event": "m0",
+          "equals": 0
+        }
+      },
+      {
+        "id": "m2",
+        "op": "MEASURE_Z",
+        "vqs": ["q1"],
+        "produces": ["m1"]
+      },
+      {
+        "id": "free1",
+        "op": "FREE_LQ",
+        "vqs": ["q0", "q1"]
+      }
+    ]
+  },
+  "resources": {
+    "vqs": ["q0", "q1"],
+    "chs": [],
+    "events": ["m0", "m1"]
+  },
+  "caps": ["CAP_ALLOC"]
+}

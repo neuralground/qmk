@@ -8,11 +8,18 @@ verifiable **QVM Bytecode (QVM)**.
 > and adaptability via a user-mode JIT + resource manager.
 
 ## Contents
-- `docs/` — specifications (QVM, qSyscall ABI, security model, scheduling, reversibility, testing)
-- `qvm/` — QVM JSON Schema, examples, and tools (validator, pretty-printer)
-- `kernel/` — reference **simulator** of the microkernel (mapping, scheduling, capability checks)
-- `runtime/` — stubs for user-mode JIT/lowering and a client that submits jobs
-- `scripts/demo_run.py` — runs the validator and kernel simulator on the sample QVM graphs
+- **`docs/`** — Comprehensive specifications
+  - `QVM-spec.md` — Complete QVM specification (JVM-style structure)
+  - `QVM-instruction-reference.md` — Detailed opcode documentation
+  - `design-architecture-spec.md` — Overall architecture and roadmap
+  - `qsyscall-abi.md`, `security-model.md`, `reversibility.md`, etc.
+- **`qvm/`** — QVM format and tools
+  - `qvm_schema.json` — JSON Schema with validation rules
+  - `examples/` — Example programs (Bell states, teleportation, GHZ, etc.)
+  - `tools/qvm_validate.py` — Enhanced validator with linearity checks
+- **`kernel/`** — Reference simulator (mapping, scheduling, capabilities)
+- **`runtime/`** — User-mode client stubs
+- **`scripts/demo_run.py`** — Runs validator and simulator on examples
 
 ## Quick start
 ```bash
@@ -22,10 +29,31 @@ This will:
 1) validate the sample QVM graphs, and
 2) execute them on the QMK kernel simulator (with synthetic measurement outcomes).
 
-## Status
-This is a pedagogical prototype to make the specification concrete. It demonstrates:
-- QVM JSON Schema + validator (linear handles, capabilities, DAG, guards)
-- qSyscall ABI (JSON/proto schemas)
-- Minimal kernel loop with virtual→physical mapping, fences, measurement events, and capability gating
+## Documentation
 
-**Not implemented:** real decoding, fault models, real teleportation channels, full security hardening.
+### Core Specifications
+- **[QVM Specification](docs/QVM-spec.md)** — Comprehensive specification modeled after the JVM spec, covering:
+  - Introduction and design principles
+  - Resource handles and graph structure
+  - Verification and execution semantics
+  - Security model and conformance
+- **[Instruction Reference](docs/QVM-instruction-reference.md)** — Detailed documentation for all QVM opcodes
+- **[Design & Architecture](docs/design-architecture-spec.md)** — System architecture and roadmap
+
+### Examples
+See [`qvm/examples/`](qvm/examples/) for sample programs:
+- `bell_teleport_cnot.qvm.json` — Bell state preparation
+- `teleportation_demo.qvm.json` — Full quantum teleportation protocol
+- `ghz_state.qvm.json` — 4-qubit GHZ state
+- `conditional_correction.qvm.json` — Measurement-based control flow
+- `reversible_segment.qvm.json` — REV segment demonstration
+
+## Status
+This is a pedagogical prototype to make the specification concrete. **Phase 1 complete:**
+- ✅ Comprehensive QVM specification (100+ pages)
+- ✅ JSON Schema with validation rules
+- ✅ Enhanced validator (linearity, capabilities, DAG, REV segments)
+- ✅ Example programs demonstrating key features
+- ✅ Minimal kernel simulator
+
+**Not yet implemented:** Real QEC decoding, fault injection, distributed teleportation channels, formal verification, multi-tenant isolation.

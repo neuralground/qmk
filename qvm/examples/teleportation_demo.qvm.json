@@ -1,0 +1,102 @@
+{
+  "version": "0.1",
+  "program": {
+    "nodes": [
+      {
+        "id": "alloc1",
+        "op": "ALLOC_LQ",
+        "args": {
+          "n": 3,
+          "profile": "logical:SHYPS(d=9)"
+        },
+        "vqs": ["alice", "bob", "msg"],
+        "caps": ["CAP_ALLOC"]
+      },
+      {
+        "id": "prep_msg",
+        "op": "APPLY_H",
+        "vqs": ["msg"]
+      },
+      {
+        "id": "prep_s",
+        "op": "APPLY_S",
+        "vqs": ["msg"]
+      },
+      {
+        "id": "entangle",
+        "op": "APPLY_H",
+        "vqs": ["alice"]
+      },
+      {
+        "id": "entangle2",
+        "op": "APPLY_CNOT",
+        "vqs": ["alice", "bob"]
+      },
+      {
+        "id": "fence1",
+        "op": "FENCE_EPOCH"
+      },
+      {
+        "id": "bell_cnot",
+        "op": "APPLY_CNOT",
+        "vqs": ["msg", "alice"]
+      },
+      {
+        "id": "bell_h",
+        "op": "APPLY_H",
+        "vqs": ["msg"]
+      },
+      {
+        "id": "meas_msg",
+        "op": "MEASURE_Z",
+        "vqs": ["msg"],
+        "produces": ["m_msg"]
+      },
+      {
+        "id": "meas_alice",
+        "op": "MEASURE_Z",
+        "vqs": ["alice"],
+        "produces": ["m_alice"]
+      },
+      {
+        "id": "fence2",
+        "op": "FENCE_EPOCH"
+      },
+      {
+        "id": "corr_x",
+        "op": "COND_PAULI",
+        "args": {
+          "mask": "X"
+        },
+        "vqs": ["bob"],
+        "inputs": ["m_alice"]
+      },
+      {
+        "id": "corr_z",
+        "op": "COND_PAULI",
+        "args": {
+          "mask": "Z"
+        },
+        "vqs": ["bob"],
+        "inputs": ["m_msg"]
+      },
+      {
+        "id": "verify",
+        "op": "MEASURE_Z",
+        "vqs": ["bob"],
+        "produces": ["m_bob"]
+      },
+      {
+        "id": "free1",
+        "op": "FREE_LQ",
+        "vqs": ["alice", "bob", "msg"]
+      }
+    ]
+  },
+  "resources": {
+    "vqs": ["alice", "bob", "msg"],
+    "chs": [],
+    "events": ["m_msg", "m_alice", "m_bob"]
+  },
+  "caps": ["CAP_ALLOC"]
+}
