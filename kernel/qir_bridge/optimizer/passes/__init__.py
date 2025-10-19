@@ -9,6 +9,7 @@ from .gate_commutation import GateCommutationPass
 from .gate_fusion import GateFusionPass
 from .dead_code_elimination import DeadCodeEliminationPass
 from .constant_propagation import ConstantPropagationPass
+from .swap_insertion import SWAPInsertionPass
 
 __all__ = [
     'GateCancellationPass',
@@ -16,4 +17,5 @@ __all__ = [
     'GateFusionPass',
     'DeadCodeEliminationPass',
     'ConstantPropagationPass',
+    'SWAPInsertionPass',
 ]
