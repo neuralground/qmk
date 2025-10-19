@@ -10,6 +10,7 @@ from .gate_fusion import GateFusionPass
 from .dead_code_elimination import DeadCodeEliminationPass
 from .constant_propagation import ConstantPropagationPass
 from .swap_insertion import SWAPInsertionPass
+from .qubit_mapping import QubitMappingPass
 
 __all__ = [
     'GateCancellationPass',
@@ -18,4 +19,5 @@ __all__ = [
     'DeadCodeEliminationPass',
     'ConstantPropagationPass',
     'SWAPInsertionPass',
+    'QubitMappingPass',
 ]
