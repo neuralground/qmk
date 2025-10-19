@@ -4,11 +4,77 @@ All notable changes to the Quantum Microkernel project.
 
 ## [Unreleased]
 
-### Phase 2.3 - qSyscall ABI Implementation (Next)
-- Session management
-- Job submission and tracking
-- RPC server
-- Client library
+### Phase 2.4 - Advanced Examples & Documentation (Next)
+- VQE-style circuits
+- Quantum error correction demos
+- Multi-qubit entanglement examples
+- Adaptive circuits with guards
+
+---
+
+## [0.3.0] - 2025-10-18
+
+### Phase 2.3 - qSyscall ABI Implementation ✅
+
+#### Added
+- **Session Manager** (`kernel/session_manager.py`)
+  - Tenant session lifecycle management
+  - Capability negotiation (CAP_ALLOC, CAP_TELEPORT, CAP_MAGIC, CAP_LINK, etc.)
+  - Session-scoped resource tracking
+  - Quota enforcement (max jobs, qubits, channels)
+  - Handle generation and validation
+
+- **Job Manager** (`kernel/job_manager.py`)
+  - Asynchronous job submission and tracking
+  - Job state machine (QUEUED → VALIDATING → RUNNING → COMPLETED/FAILED/CANCELLED)
+  - Job cancellation support
+  - Wait with timeout
+  - Event collection and telemetry
+  - Thread-safe operations
+
+- **RPC Server** (`kernel/rpc_server.py`)
+  - JSON-RPC 2.0 over Unix domain sockets
+  - Request parsing and validation
+  - Method routing
+  - Error response formatting
+  - Thread-safe client handling
+
+- **Syscall Handlers** (`kernel/syscalls/`)
+  - `q_negotiate_caps` - Capability negotiation
+  - `q_submit` - Job submission with automatic capability checking
+  - `q_status` - Job status queries
+  - `q_wait` - Blocking wait for completion
+  - `q_cancel` - Job cancellation
+  - `q_open_chan` - Entanglement channel management
+  - `q_get_telemetry` - System telemetry
+
+- **Client Library** (`runtime/client/qsyscall_client.py`)
+  - Python client for qSyscall ABI
+  - High-level API (submit_job, wait_for_job, submit_and_wait, etc.)
+  - Connection management over Unix sockets
+  - QSyscallError exception handling
+  - Session management
+
+- **QMK Server** (`kernel/qmk_server.py`)
+  - Main server integrating all components
+  - Automatic handler registration
+  - Command-line interface
+  - Graceful shutdown
+
+- **Test Suite Expansion**
+  - 19 unit tests for session manager
+  - 19 unit tests for job manager
+  - 9 integration tests for qSyscall ABI
+  - **Total: 146 tests (100% passing)**
+
+#### Features
+- Complete qSyscall ABI implementation per specification
+- Multi-session support with tenant isolation
+- Capability-based security model
+- Resource quota enforcement
+- Asynchronous job execution
+- Session-scoped resource tracking
+- JSON-RPC 2.0 compliance
 
 ---
 
