@@ -88,10 +88,9 @@ class TestIBMQiskitExamples(unittest.TestCase):
         
         fidelity = self._calculate_fidelity(qiskit_result, qmk_result)
         
-        # GHZ is harder due to 3-way entanglement
-        # QMK's simplified model may not handle this perfectly
-        self.assertGreater(fidelity, 0.70, 
-            f"GHZ state fidelity: {fidelity:.4f} (expected lower due to 3-way entanglement)")
+        # GHZ with multi-qubit entanglement tracking
+        self.assertGreater(fidelity, 0.95, 
+            f"GHZ state fidelity: {fidelity:.4f}")
     
     @unittest.skipUnless(HAS_QISKIT, "Qiskit not installed")
     def test_superposition_ibm_example(self):

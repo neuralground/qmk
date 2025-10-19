@@ -66,8 +66,9 @@ class LogicalQubit:
         self.correction_count = 0
         
         # Entanglement tracking (simplified)
-        self.entangled_with = None  # ID of entangled qubit
+        self.entangled_with = None  # ID of entangled qubit (pairwise)
         self.measurement_outcome = None  # Cached measurement result
+        self.entanglement_group = None  # Reference to EntanglementGroup for multi-qubit
     
     def apply_gate(self, gate_type: str, time_us: float):
         """
@@ -232,8 +233,18 @@ class LogicalQubit:
             return 1
         elif self.state in [LogicalState.PLUS, LogicalState.MINUS]:
             # Superposition: 50/50 outcome
-            # If entangled, use cached outcome for correlation
-            if self.entangled_with is not None and self.measurement_outcome is not None:
+            # Check entanglement group first (for GHZ states)
+            if self.entanglement_group is not None:
+                group_outcome = self.entanglement_group.get_measurement()
+                if group_outcome is not None:
+                    return group_outcome
+                else:
+                    # First measurement in group - choose randomly
+                    outcome = self.rng.randint(0, 1)
+                    self.entanglement_group.set_measurement(outcome)
+                    return outcome
+            # Check pairwise entanglement (for Bell states)
+            elif self.entangled_with is not None and self.measurement_outcome is not None:
                 # Already measured - return cached result
                 return self.measurement_outcome
             else:
@@ -316,7 +327,24 @@ class TwoQubitGate:
                 # Both qubits now in correlated superposition
                 control.state = LogicalState.PLUS  # Keep superposition
                 target.state = LogicalState.PLUS   # Now also in superposition
-                # Store correlation info (simplified)
+                
+                # Handle entanglement groups for GHZ states
+                if control.entanglement_group is not None:
+                    # Control already in a group - add target to it
+                    control.entanglement_group.add_qubit(target.qubit_id)
+                    target.entanglement_group = control.entanglement_group
+                elif target.entanglement_group is not None:
+                    # Target already in a group - add control to it
+                    target.entanglement_group.add_qubit(control.qubit_id)
+                    control.entanglement_group = target.entanglement_group
+                else:
+                    # Create new entanglement group
+                    from .entanglement_tracker import EntanglementGroup
+                    group = EntanglementGroup({control.qubit_id, target.qubit_id})
+                    control.entanglement_group = group
+                    target.entanglement_group = group
+                
+                # Also set pairwise for backward compatibility
                 control.entangled_with = target.qubit_id
                 target.entangled_with = control.qubit_id
             elif target.state == LogicalState.ONE:
