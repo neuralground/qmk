@@ -247,6 +247,45 @@ class EnhancedExecutor:
     def _exec_measurement(self, node: Dict[str, Any]):
         """Execute measurement operation."""
         op = node["op"]
+        vq_ids = node.get("vqs", [])
+        event_ids = node.get("produces", [])
+        
+        # Check if this is a Bell basis measurement (2 qubits)
+        if op == "MEASURE_BELL" or len(vq_ids) == 2:
+            # Bell basis measurement on two qubits
+            if len(vq_ids) != 2:
+                raise RuntimeError(f"Bell measurement requires exactly 2 qubits, got {len(vq_ids)}")
+            
+            qubit1 = self.resource_manager.get_logical_qubit(vq_ids[0])
+            qubit2 = self.resource_manager.get_logical_qubit(vq_ids[1])
+            
+            # Perform Bell measurement
+            from .logical_qubit import LogicalQubit
+            outcome1, outcome2, bell_index = LogicalQubit.measure_bell_basis(
+                qubit1, qubit2, self.resource_manager.current_time_us
+            )
+            
+            # Store events
+            if len(event_ids) >= 2:
+                self.events[event_ids[0]] = outcome1
+                self.events[event_ids[1]] = outcome2
+            elif len(event_ids) == 1:
+                # Store combined outcome as bell_index
+                self.events[event_ids[0]] = bell_index
+            
+            # Advance time
+            cycle_time = max(qubit1.profile.logical_cycle_time_us,
+                           qubit2.profile.logical_cycle_time_us)
+            self.resource_manager.advance_time(cycle_time)
+            
+            self.execution_log.append(("MEASURE_BELL", node["id"], vq_ids, 
+                                      (outcome1, outcome2, bell_index), event_ids))
+            return
+        
+        # Single-qubit measurement
+        if len(vq_ids) != 1:
+            raise RuntimeError(f"Single-qubit measurement requires exactly 1 qubit, got {len(vq_ids)}")
+        
         # Determine measurement basis
         if op == "MEASURE_Z":
             basis = "Z"
@@ -257,12 +296,6 @@ class EnhancedExecutor:
         else:
             # Default to Z-basis for unknown measurement types
             basis = "Z"
-        
-        vq_ids = node.get("vqs", [])
-        event_ids = node.get("produces", [])
-        
-        if len(vq_ids) != 1:
-            raise RuntimeError(f"Measurement requires exactly 1 qubit, got {len(vq_ids)}")
         
         qubit = self.resource_manager.get_logical_qubit(vq_ids[0])
         outcome = qubit.measure(basis, self.resource_manager.current_time_us)

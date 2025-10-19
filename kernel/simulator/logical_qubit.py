@@ -161,6 +161,46 @@ class LogicalQubit:
         self.current_time_us = time_us + self.profile.logical_cycle_time_us
         self.last_gate_time_us = self.current_time_us
     
+    @staticmethod
+    def measure_bell_basis(qubit1: 'LogicalQubit', qubit2: 'LogicalQubit', time_us: float) -> tuple:
+        """
+        Perform Bell basis measurement on two qubits.
+        
+        Args:
+            qubit1: First qubit
+            qubit2: Second qubit
+            time_us: Measurement time
+        
+        Returns:
+            Tuple of (outcome1, outcome2, bell_state_index)
+            where bell_state_index identifies which Bell state:
+            0: |Φ+⟩ = (|00⟩ + |11⟩)/√2
+            1: |Φ-⟩ = (|00⟩ - |11⟩)/√2
+            2: |Ψ+⟩ = (|01⟩ + |10⟩)/√2
+            3: |Ψ-⟩ = (|01⟩ - |10⟩)/√2
+        
+        Bell measurement is implemented as:
+        1. CNOT(qubit1, qubit2)
+        2. H(qubit1)
+        3. Measure both in Z-basis
+        """
+        # Apply CNOT
+        from .logical_qubit import TwoQubitGate
+        TwoQubitGate.apply_cnot(qubit1, qubit2, time_us)
+        
+        # Apply H to first qubit
+        qubit1.apply_gate("H", time_us)
+        
+        # Measure both in Z-basis
+        outcome1 = qubit1.measure("Z", time_us)
+        outcome2 = qubit2.measure("Z", time_us)
+        
+        # Determine Bell state index from outcomes
+        # |Φ+⟩ → 00, |Φ-⟩ → 10, |Ψ+⟩ → 01, |Ψ-⟩ → 11
+        bell_state_index = outcome1 * 2 + outcome2
+        
+        return (outcome1, outcome2, bell_state_index)
+    
     def get_logical_error_probability(self) -> float:
         """
         Get current logical error probability.
