@@ -12,9 +12,18 @@ python -m kernel.qmk_server
 
 The server will listen on `/tmp/qmk.sock` by default.
 
+## Quick Start
+
+Run all examples with the provided script:
+```bash
+./examples/run_all_examples.sh
+```
+
+Or run individual examples as shown below.
+
 ## Examples
 
-### Simple Bell State (`simple_bell_state.py`)
+### 1. Simple Bell State (`simple_bell_state.py`)
 
 Demonstrates the complete workflow:
 1. Capability negotiation
@@ -55,6 +64,81 @@ python examples/simple_bell_state.py
 
 ✅ Bell state preparation completed successfully!
 ```
+
+### 2. VQE-Style Ansatz (`vqe_ansatz.py`)
+
+Demonstrates variational quantum algorithms:
+- Parameterized rotation gates (RZ)
+- Entangling layers (CNOT)
+- Parameter sweeps
+- Energy estimation from measurements
+
+**Run:**
+```bash
+python examples/vqe_ansatz.py
+```
+
+**Features:**
+- Creates ansatz circuits with adjustable parameters
+- Runs multiple iterations with different parameter values
+- Simulates VQE optimization workflow
+- Tracks energy as a function of parameters
+
+### 3. Multi-Qubit Entanglement (`multi_qubit_entanglement.py`)
+
+Creates various entangled states:
+- **GHZ states**: (|00...0⟩ + |11...1⟩)/√2 for 4 and 6 qubits
+- **W states**: (|100⟩ + |010⟩ + |001⟩)/√3 for 3 qubits
+- Analysis of measurement outcomes
+
+**Run:**
+```bash
+python examples/multi_qubit_entanglement.py
+```
+
+**Features:**
+- Scalable entanglement generation
+- Hamming weight analysis
+- Verification of expected correlations
+- Resource usage tracking
+
+### 4. Adaptive Circuit (`adaptive_circuit.py`)
+
+Demonstrates mid-circuit measurements with conditional operations:
+- Syndrome measurements
+- Guard-based conditional corrections
+- Multi-round error detection
+- 3-qubit repetition code implementation
+
+**Run:**
+```bash
+python examples/adaptive_circuit.py
+```
+
+**Features:**
+- Mid-circuit measurements
+- Conditional gate application using guards
+- Syndrome-based error detection
+- Multiple measurement rounds
+
+### 5. Performance Benchmark (`benchmark.py`)
+
+Comprehensive performance benchmarking:
+- Job submission latency
+- End-to-end execution time
+- Scaling with qubit count
+- Concurrent job throughput
+
+**Run:**
+```bash
+python examples/benchmark.py
+```
+
+**Metrics:**
+- Mean/median/min/max latencies
+- Throughput (jobs/second)
+- Scaling factors
+- Resource utilization
 
 ## Client Library API
 
