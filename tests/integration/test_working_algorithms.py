@@ -14,10 +14,10 @@ from pathlib import Path
 ROOT = Path(__file__).parent.parent.parent
 sys.path.insert(0, str(ROOT))
 
-from kernel.simulator.enhanced_executor import EnhancedExecutor
-from kernel.qir_bridge.optimizer_integration import OptimizedExecutor, OptimizationLevel
-from kernel.qir_bridge.qiskit_to_qir import QiskitToQIRConverter
-from kernel.qir_bridge.cirq_to_qir import CirqToQIRConverter
+from kernel.executor.enhanced_executor import EnhancedExecutor
+from qir.optimizer_integration import OptimizedExecutor, OptimizationLevel
+from qir.translators.qiskit_to_qir import QiskitToQIRConverter
+from qir.translators.cirq_to_qir import CirqToQIRConverter
 
 # Import algorithm examples
 sys.path.insert(0, str(ROOT / "examples"))

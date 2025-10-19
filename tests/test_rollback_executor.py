@@ -6,7 +6,7 @@ import unittest
 from kernel.reversibility.rollback_executor import RollbackExecutor
 from kernel.reversibility.checkpoint_manager import CheckpointManager
 from kernel.simulator.enhanced_resource_manager import EnhancedResourceManager
-from kernel.simulator.enhanced_executor import EnhancedExecutor
+from kernel.executor.enhanced_executor import EnhancedExecutor
 
 
 class TestRollbackExecutor(unittest.TestCase):

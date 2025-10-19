@@ -26,7 +26,7 @@ from kernel.hardware.qiskit_simulator_backend import QiskitSimulatorBackend
 from kernel.hardware.azure_quantum_simulator_backend import AzureQuantumSimulatorBackend
 from kernel.hardware.hal_interface import JobStatus
 from kernel.qir_bridge import QIRParser, QVMGraphGenerator
-from kernel.simulator.enhanced_executor import EnhancedExecutor
+from kernel.executor.enhanced_executor import EnhancedExecutor
 
 
 class ExecutionPathComparator:

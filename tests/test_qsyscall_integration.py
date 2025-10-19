@@ -6,7 +6,7 @@ Tests the complete flow from client to kernel.
 
 import unittest
 import json
-from kernel.qmk_server import QMKServer
+from kernel.core.qmk_server import QMKServer
 from runtime.client import QSyscallClient
 
 
@@ -165,7 +165,7 @@ class TestQSyscallIntegration(unittest.TestCase):
     
     def test_quota_enforcement(self):
         """Test that quotas are enforced."""
-        from kernel.session_manager import SessionQuota
+        from kernel.core.session_manager import SessionQuota
         
         # Create session with small quota
         custom_quota = SessionQuota(max_jobs=1)

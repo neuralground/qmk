@@ -10,7 +10,7 @@ import json
 ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 sys.path.insert(0, ROOT)
 
-from kernel.simulator.enhanced_executor import EnhancedExecutor
+from kernel.executor.enhanced_executor import EnhancedExecutor
 
 
 class TestEnhancedExecutor(unittest.TestCase):

@@ -22,7 +22,7 @@ sys.path.insert(0, str(ROOT))
 
 from kernel.hardware.qiskit_simulator_backend import QiskitSimulatorBackend
 from kernel.hardware.azure_quantum_simulator_backend import AzureQuantumSimulatorBackend
-from kernel.simulator.enhanced_executor import EnhancedExecutor
+from kernel.executor.enhanced_executor import EnhancedExecutor
 
 try:
     from qiskit import QuantumCircuit

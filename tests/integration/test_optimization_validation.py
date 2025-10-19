@@ -14,12 +14,12 @@ from pathlib import Path
 ROOT = Path(__file__).parent.parent.parent
 sys.path.insert(0, str(ROOT))
 
-from kernel.qir_bridge.optimizer import (
+from qir.optimizer import (
     QIRCircuit, QIRInstruction, InstructionType, PassManager,
     IRToQVMConverter
 )
-from kernel.qir_bridge.optimizer.passes import GateCancellationPass, GateCommutationPass
-from kernel.simulator.enhanced_executor import EnhancedExecutor
+from qir.optimizer.passes import GateCancellationPass, GateCommutationPass
+from kernel.executor.enhanced_executor import EnhancedExecutor
 
 try:
     from qiskit import QuantumCircuit

@@ -4,7 +4,7 @@ Unit tests for JobManager
 
 import unittest
 import time
-from kernel.job_manager import JobManager, JobState, JobPolicy
+from kernel.core.job_manager import JobManager, JobState, JobPolicy
 
 
 class TestJobManager(unittest.TestCase):

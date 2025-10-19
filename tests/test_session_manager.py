@@ -3,7 +3,7 @@ Unit tests for SessionManager
 """
 
 import unittest
-from kernel.session_manager import SessionManager, SessionQuota
+from kernel.core.session_manager import SessionManager, SessionQuota
 
 
 class TestSessionManager(unittest.TestCase):

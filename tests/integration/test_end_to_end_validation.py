@@ -18,8 +18,8 @@ from pathlib import Path
 ROOT = Path(__file__).parent.parent.parent
 sys.path.insert(0, str(ROOT))
 
-from kernel.simulator.enhanced_executor import EnhancedExecutor
-from kernel.qir_bridge.optimizer_integration import (
+from kernel.executor.enhanced_executor import EnhancedExecutor
+from qir.optimizer_integration import (
     OptimizedExecutor, OptimizationLevel
 )
 
