@@ -57,7 +57,10 @@ class QiskitToQIRConverter:
         qir_lines.append("")
         
         # Convert instructions
-        for instruction, qargs, cargs in circuit.data:
+        for circuit_instruction in circuit.data:
+            instruction = circuit_instruction.operation
+            qargs = circuit_instruction.qubits
+            cargs = circuit_instruction.clbits
             qir_inst = self._convert_instruction(instruction, qargs, cargs)
             if qir_inst:
                 qir_lines.append(qir_inst)
@@ -169,7 +172,11 @@ class QiskitToQIRConverter:
         inst_id = 0
         measurement_results = []
         
-        for instruction, qargs, cargs in circuit.data:
+        for circuit_instruction in circuit.data:
+            instruction = circuit_instruction.operation
+            qargs = circuit_instruction.qubits
+            cargs = circuit_instruction.clbits
+            
             name = instruction.name.lower()
             qubits = [f"q{circuit.qubits.index(q)}" for q in qargs]
             
@@ -188,11 +195,32 @@ class QiskitToQIRConverter:
             elif name == 's':
                 nodes.append({"id": f"s{inst_id}", "op": "APPLY_S", "vqs": qubits})
             
+            elif name == 'sdg':
+                # S-dagger: apply S three times (S^3 = S†)
+                nodes.append({"id": f"sdg{inst_id}_1", "op": "APPLY_S", "vqs": qubits})
+                nodes.append({"id": f"sdg{inst_id}_2", "op": "APPLY_S", "vqs": qubits})
+                nodes.append({"id": f"sdg{inst_id}_3", "op": "APPLY_S", "vqs": qubits})
+            
             elif name == 't':
                 nodes.append({"id": f"t{inst_id}", "op": "APPLY_T", "vqs": qubits})
             
+            elif name == 'tdg':
+                # T-dagger: apply T seven times (T^7 = T†)
+                for i in range(7):
+                    nodes.append({"id": f"tdg{inst_id}_{i}", "op": "APPLY_T", "vqs": qubits})
+            
             elif name in ['cx', 'cnot']:
                 nodes.append({"id": f"cx{inst_id}", "op": "APPLY_CNOT", "vqs": qubits})
+            
+            elif name == 'cz':
+                nodes.append({"id": f"cz{inst_id}", "op": "APPLY_CZ", "vqs": qubits})
+            
+            elif name == 'swap':
+                nodes.append({"id": f"swap{inst_id}", "op": "APPLY_SWAP", "vqs": qubits})
+            
+            elif name == 'barrier':
+                # Skip barriers
+                pass
             
             elif name == 'measure':
                 result_name = f"m{circuit.qubits.index(qargs[0])}"
