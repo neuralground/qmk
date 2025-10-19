@@ -16,6 +16,8 @@ from .measurement_deferral import MeasurementDeferralPass
 from .clifford_t_optimization import CliffordTPlusOptimizationPass
 from .magic_state_optimization import MagicStateOptimizationPass
 from .gate_teleportation import GateTeleportationPass
+from .uncomputation_optimization import UncomputationOptimizationPass
+from .lattice_surgery_optimization import LatticeSurgeryOptimizationPass
 
 __all__ = [
     'GateCancellationPass',
@@ -30,4 +32,6 @@ __all__ = [
     'CliffordTPlusOptimizationPass',
     'MagicStateOptimizationPass',
     'GateTeleportationPass',
+    'UncomputationOptimizationPass',
+    'LatticeSurgeryOptimizationPass',
 ]
