@@ -1,0 +1,113 @@
+{
+  "version": "0.1",
+  "description": "Bell basis measurement for quantum teleportation",
+  "program": {
+    "nodes": [
+      {
+        "id": "alloc",
+        "op": "ALLOC_LQ",
+        "args": {
+          "n": 3,
+          "profile": "logical:Surface(d=7)"
+        },
+        "vqs": ["msg", "here", "there"]
+      },
+      
+      {
+        "id": "comment_prepare",
+        "op": "BAR_REGION",
+        "args": {"tag": "Prepare message state"}
+      },
+      {
+        "id": "h_msg",
+        "op": "APPLY_H",
+        "vqs": ["msg"]
+      },
+      {
+        "id": "t_msg",
+        "op": "APPLY_T",
+        "vqs": ["msg"]
+      },
+      
+      {
+        "id": "comment_bell_pair",
+        "op": "BAR_REGION",
+        "args": {"tag": "Create Bell pair"}
+      },
+      {
+        "id": "h_here",
+        "op": "APPLY_H",
+        "vqs": ["here"]
+      },
+      {
+        "id": "cnot_pair",
+        "op": "APPLY_CNOT",
+        "vqs": ["here", "there"]
+      },
+      
+      {
+        "id": "comment_bell_meas",
+        "op": "BAR_REGION",
+        "args": {"tag": "Bell basis measurement"}
+      },
+      {
+        "id": "bell_measure",
+        "op": "MEASURE_BELL",
+        "vqs": ["msg", "here"],
+        "produces": ["m0", "m1"]
+      },
+      
+      {
+        "id": "fence",
+        "op": "FENCE_EPOCH"
+      },
+      
+      {
+        "id": "comment_correct",
+        "op": "BAR_REGION",
+        "args": {"tag": "Apply corrections based on Bell measurement"}
+      },
+      {
+        "id": "corr_x",
+        "op": "COND_PAULI",
+        "args": {"pauli": "X"},
+        "vqs": ["there"],
+        "guard": {"event": "m1", "equals": 1}
+      },
+      {
+        "id": "corr_z",
+        "op": "COND_PAULI",
+        "args": {"pauli": "Z"},
+        "vqs": ["there"],
+        "guard": {"event": "m0", "equals": 1}
+      },
+      
+      {
+        "id": "comment_verify",
+        "op": "BAR_REGION",
+        "args": {"tag": "Verify teleportation"}
+      },
+      {
+        "id": "measure_result",
+        "op": "MEASURE_Z",
+        "vqs": ["there"],
+        "produces": ["result"]
+      },
+      
+      {
+        "id": "free",
+        "op": "FREE_LQ",
+        "vqs": ["msg", "here", "there"]
+      }
+    ]
+  },
+  "resources": {
+    "vqs": ["msg", "here", "there"],
+    "events": ["m0", "m1", "result"]
+  },
+  "metadata": {
+    "algorithm": "Quantum Teleportation",
+    "description": "Demonstrates Bell basis measurement for teleporting quantum state",
+    "expected_behavior": "State prepared on 'msg' qubit should appear on 'there' qubit after teleportation"
+  }
+}

@@ -1,0 +1,78 @@
+{
+  "version": "0.1",
+  "description": "Demonstration of all measurement bases in QVM format",
+  "program": {
+    "nodes": [
+      {
+        "id": "alloc",
+        "op": "ALLOC_LQ",
+        "args": {
+          "n": 3,
+          "profile": "logical:Surface(d=7)"
+        },
+        "vqs": ["q0", "q1", "q2"]
+      },
+      
+      {
+        "id": "comment_z",
+        "op": "BAR_REGION",
+        "args": {"tag": "Z-basis measurement example"}
+      },
+      {
+        "id": "h0",
+        "op": "APPLY_H",
+        "vqs": ["q0"]
+      },
+      {
+        "id": "mz",
+        "op": "MEASURE_Z",
+        "vqs": ["q0"],
+        "produces": ["m_z"]
+      },
+      
+      {
+        "id": "comment_x",
+        "op": "BAR_REGION",
+        "args": {"tag": "X-basis measurement example"}
+      },
+      {
+        "id": "h1",
+        "op": "APPLY_H",
+        "vqs": ["q1"]
+      },
+      {
+        "id": "mx",
+        "op": "MEASURE_X",
+        "vqs": ["q1"],
+        "produces": ["m_x"]
+      },
+      
+      {
+        "id": "comment_y",
+        "op": "BAR_REGION",
+        "args": {"tag": "Y-basis measurement example"}
+      },
+      {
+        "id": "h2",
+        "op": "APPLY_H",
+        "vqs": ["q2"]
+      },
+      {
+        "id": "my",
+        "op": "MEASURE_Y",
+        "vqs": ["q2"],
+        "produces": ["m_y"]
+      },
+      
+      {
+        "id": "free",
+        "op": "FREE_LQ",
+        "vqs": ["q0", "q1", "q2"]
+      }
+    ]
+  },
+  "resources": {
+    "vqs": ["q0", "q1", "q2"],
+    "events": ["m_z", "m_x", "m_y"]
+  }
+}

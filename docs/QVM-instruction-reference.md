@@ -470,6 +470,152 @@ All measurement operations are **irreversible** and produce classical events.
 
 ---
 
+### MEASURE_Y
+
+**Opcode**: `MEASURE_Y`
+
+**Description**: Measures qubit in Y basis.
+
+**Required Capability**: None
+
+**Arguments**: None
+
+**Consumes**: 1 virtual qubit (VQ)
+
+**Produces**: 
+- 1 virtual qubit (VQ, same handle, collapsed to computational basis)
+- 1 event (EV) with measurement outcome
+
+**Semantics**:
+- **Irreversible operation**
+- Projects onto Y eigenstates: {|+i⟩, |-i⟩} where |±i⟩ = (|0⟩ ± i|1⟩)/√2
+- Equivalent to S†, H, MEASURE_Z, H, S
+- Event value: 0 (for |+i⟩) or 1 (for |-i⟩)
+- Ends any REV segment
+
+**Example**:
+```json
+{
+  "id": "my1",
+  "op": "MEASURE_Y",
+  "vqs": ["q0"],
+  "produces": ["m0"]
+}
+```
+
+**Reversibility**: Not reversible
+
+**Use Cases**:
+- Y-error detection in quantum error correction
+- State tomography
+- Measurement-based quantum computing
+
+---
+
+### MEASURE_ANGLE
+
+**Opcode**: `MEASURE_ANGLE`
+
+**Description**: Measures qubit in arbitrary basis at angle θ from Z-axis.
+
+**Required Capability**: None
+
+**Arguments**:
+- `angle` (float): Rotation angle in radians from Z-axis
+
+**Consumes**: 1 virtual qubit (VQ)
+
+**Produces**: 
+- 1 virtual qubit (VQ, same handle, collapsed to computational basis)
+- 1 event (EV) with measurement outcome
+
+**Semantics**:
+- **Irreversible operation**
+- Projects onto basis rotated by angle θ from Z-axis
+- Measurement eigenstates: |θ+⟩ = cos(θ/2)|0⟩ + sin(θ/2)|1⟩, |θ-⟩ = sin(θ/2)|0⟩ - cos(θ/2)|1⟩
+- Event value: 0 (for |θ+⟩) or 1 (for |θ-⟩)
+- Special cases: θ=0 (Z-basis), θ=π/2 (X-basis), θ=π (-Z-basis)
+
+**Example**:
+```json
+{
+  "id": "mangle1",
+  "op": "MEASURE_ANGLE",
+  "args": {
+    "angle": 0.7853981633974483
+  },
+  "vqs": ["q0"],
+  "produces": ["m0"]
+}
+```
+
+**Reversibility**: Not reversible
+
+**Use Cases**:
+- Generalized measurements
+- Quantum state tomography
+- Adaptive measurement protocols
+- Weak measurements
+
+---
+
+### MEASURE_BELL
+
+**Opcode**: `MEASURE_BELL`
+
+**Description**: Performs Bell basis measurement on two qubits jointly.
+
+**Required Capability**: None
+
+**Arguments**: None
+
+**Consumes**: 2 virtual qubits (VQ)
+
+**Produces**: 
+- 2 virtual qubits (VQ, same handles, both collapsed to computational basis)
+- 2 events (EV) with measurement outcomes, or 1 event with Bell state index
+
+**Semantics**:
+- **Irreversible operation** (collapses both qubits)
+- Projects onto Bell basis: {|Φ+⟩, |Ψ+⟩, |Φ-⟩, |Ψ-⟩}
+  - |Φ+⟩ = (|00⟩ + |11⟩)/√2  → outcomes (0,0) → index 0
+  - |Ψ+⟩ = (|01⟩ + |10⟩)/√2  → outcomes (0,1) → index 1
+  - |Φ-⟩ = (|00⟩ - |11⟩)/√2  → outcomes (1,0) → index 2
+  - |Ψ-⟩ = (|01⟩ - |10⟩)/√2  → outcomes (1,1) → index 3
+- Implemented as: CNOT(q0,q1), H(q0), MEASURE_Z(q0), MEASURE_Z(q1)
+- Ends any REV segment
+
+**Example (two outcomes)**:
+```json
+{
+  "id": "bell_meas",
+  "op": "MEASURE_BELL",
+  "vqs": ["q0", "q1"],
+  "produces": ["m0", "m1"]
+}
+```
+
+**Example (Bell state index)**:
+```json
+{
+  "id": "bell_meas",
+  "op": "MEASURE_BELL",
+  "vqs": ["q0", "q1"],
+  "produces": ["bell_index"]
+}
+```
+
+**Reversibility**: Not reversible
+
+**Use Cases**:
+- Quantum teleportation
+- Entanglement swapping
+- Superdense coding verification
+- Quantum repeaters
+- Bell inequality tests
+
+---
+
 ## Composite Operations
 
 Composite operations require capabilities and may involve multiple logical qubits or distributed resources.

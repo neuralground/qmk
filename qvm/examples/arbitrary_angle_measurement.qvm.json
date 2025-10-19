@@ -1,0 +1,101 @@
+{
+  "version": "0.1",
+  "description": "Arbitrary angle measurements for state tomography",
+  "program": {
+    "nodes": [
+      {
+        "id": "alloc",
+        "op": "ALLOC_LQ",
+        "args": {
+          "n": 4,
+          "profile": "logical:Surface(d=7)"
+        },
+        "vqs": ["q0", "q1", "q2", "q3"]
+      },
+      
+      {
+        "id": "comment_prepare",
+        "op": "BAR_REGION",
+        "args": {"tag": "Prepare test state |+⟩ on all qubits"}
+      },
+      {
+        "id": "h0",
+        "op": "APPLY_H",
+        "vqs": ["q0"]
+      },
+      {
+        "id": "h1",
+        "op": "APPLY_H",
+        "vqs": ["q1"]
+      },
+      {
+        "id": "h2",
+        "op": "APPLY_H",
+        "vqs": ["q2"]
+      },
+      {
+        "id": "h3",
+        "op": "APPLY_H",
+        "vqs": ["q3"]
+      },
+      
+      {
+        "id": "comment_measure",
+        "op": "BAR_REGION",
+        "args": {"tag": "Measure at different angles"}
+      },
+      {
+        "id": "m_angle_0",
+        "op": "MEASURE_ANGLE",
+        "args": {"angle": 0.0},
+        "vqs": ["q0"],
+        "produces": ["m0"],
+        "metadata": {"description": "Angle 0 = Z-basis"}
+      },
+      {
+        "id": "m_angle_pi4",
+        "op": "MEASURE_ANGLE",
+        "args": {"angle": 0.7853981633974483},
+        "vqs": ["q1"],
+        "produces": ["m1"],
+        "metadata": {"description": "Angle π/4"}
+      },
+      {
+        "id": "m_angle_pi2",
+        "op": "MEASURE_ANGLE",
+        "args": {"angle": 1.5707963267948966},
+        "vqs": ["q2"],
+        "produces": ["m2"],
+        "metadata": {"description": "Angle π/2 = X-basis"}
+      },
+      {
+        "id": "m_angle_3pi4",
+        "op": "MEASURE_ANGLE",
+        "args": {"angle": 2.356194490192345},
+        "vqs": ["q3"],
+        "produces": ["m3"],
+        "metadata": {"description": "Angle 3π/4"}
+      },
+      
+      {
+        "id": "free",
+        "op": "FREE_LQ",
+        "vqs": ["q0", "q1", "q2", "q3"]
+      }
+    ]
+  },
+  "resources": {
+    "vqs": ["q0", "q1", "q2", "q3"],
+    "events": ["m0", "m1", "m2", "m3"]
+  },
+  "metadata": {
+    "algorithm": "State Tomography",
+    "description": "Demonstrates arbitrary angle measurements for complete state characterization",
+    "angles": {
+      "m0": "0 (Z-basis)",
+      "m1": "π/4",
+      "m2": "π/2 (X-basis)",
+      "m3": "3π/4"
+    }
+  }
+}
