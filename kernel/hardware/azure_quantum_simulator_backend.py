@@ -20,6 +20,14 @@ try:
 except ImportError:
     HAS_AZURE = False
 
+# Fallback to Qiskit Aer for local simulation
+try:
+    from qiskit import QuantumCircuit, QuantumRegister, ClassicalRegister
+    from qiskit_aer import AerSimulator
+    HAS_QISKIT = True
+except ImportError:
+    HAS_QISKIT = False
+
 
 class AzureQuantumSimulatorBackend(HardwareBackend):
     """
@@ -35,7 +43,8 @@ class AzureQuantumSimulatorBackend(HardwareBackend):
         self,
         resource_id: Optional[str] = None,
         location: Optional[str] = None,
-        target: str = "ionq.simulator"
+        target: str = "ionq.simulator",
+        use_local: bool = False
     ):
         """
         Initialize Azure Quantum backend.
@@ -44,51 +53,67 @@ class AzureQuantumSimulatorBackend(HardwareBackend):
             resource_id: Azure Quantum workspace resource ID
             location: Azure location
             target: Target simulator name
+            use_local: Use local Qiskit simulator instead of Azure (for testing)
         """
         super().__init__(
-            backend_name=f"Azure Quantum ({target})",
+            backend_name=f"Azure Quantum ({target})" + (" [Local]" if use_local else ""),
             backend_id=f"azure_{target.replace('.', '_')}"
         )
         
-        if not HAS_AZURE:
+        self.resource_id = resource_id
+        self.location = location
+        self.target = target
+        self.use_local = use_local or not HAS_AZURE
+        self.workspace = None
+        self.provider = None
+        self.backend = None
+        self.local_simulator = None
+        self.jobs = {}
+        
+        if not self.use_local and not HAS_AZURE:
             raise ImportError(
                 "Azure Quantum SDK not installed. "
                 "Install with: pip install azure-quantum qiskit-qir"
             )
         
-        self.resource_id = resource_id
-        self.location = location
-        self.target = target
-        self.workspace = None
-        self.provider = None
-        self.backend = None
-        self.jobs = {}
+        if self.use_local and not HAS_QISKIT:
+            raise ImportError(
+                "Qiskit not installed for local simulation. "
+                "Install with: pip install qiskit qiskit-aer"
+            )
     
     def connect(self, credentials: Optional[Dict] = None) -> bool:
-        """Connect to Azure Quantum workspace."""
+        """Connect to Azure Quantum workspace or local simulator."""
         try:
             # Use credentials if provided
             if credentials:
                 self.resource_id = credentials.get('resource_id', self.resource_id)
                 self.location = credentials.get('location', self.location)
             
-            if not self.resource_id or not self.location:
-                # Use local simulator mode if no credentials
-                self._status = HardwareStatus.ONLINE
-                return True
+            # Use local mode if requested or no credentials
+            if self.use_local or not self.resource_id or not self.location:
+                if HAS_QISKIT:
+                    self.local_simulator = AerSimulator(method='statevector')
+                    self._status = HardwareStatus.ONLINE
+                    return True
+                else:
+                    raise ImportError("Qiskit not available for local simulation")
             
             # Connect to Azure Quantum workspace
-            self.workspace = Workspace(
-                resource_id=self.resource_id,
-                location=self.location
-            )
-            
-            # Get Qiskit provider
-            self.provider = AzureQuantumProvider(self.workspace)
-            self.backend = self.provider.get_backend(self.target)
-            
-            self._status = HardwareStatus.ONLINE
-            return True
+            if HAS_AZURE:
+                self.workspace = Workspace(
+                    resource_id=self.resource_id,
+                    location=self.location
+                )
+                
+                # Get Qiskit provider
+                self.provider = AzureQuantumProvider(self.workspace)
+                self.backend = self.provider.get_backend(self.target)
+                
+                self._status = HardwareStatus.ONLINE
+                return True
+            else:
+                raise ImportError("Azure Quantum SDK not available")
             
         except Exception as e:
             print(f"Failed to connect to Azure Quantum: {e}")
@@ -153,13 +178,18 @@ class AzureQuantumSimulatorBackend(HardwareBackend):
         """
         from qiskit import QuantumCircuit, QuantumRegister, ClassicalRegister
         
-        nodes = qvm_graph.get('nodes', [])
+        # Handle both flat and nested structure
+        if 'program' in qvm_graph:
+            nodes = qvm_graph['program'].get('nodes', [])
+        else:
+            nodes = qvm_graph.get('nodes', [])
         
         # Determine qubits
         qubit_ids = set()
         for node in nodes:
-            if 'qubits' in node:
-                qubit_ids.update(node['qubits'])
+            qubits = node.get('qubits', node.get('vqs', []))
+            if qubits:
+                qubit_ids.update(qubits)
         
         num_qubits = len(qubit_ids)
         qr = QuantumRegister(num_qubits, 'q')
@@ -171,8 +201,8 @@ class AzureQuantumSimulatorBackend(HardwareBackend):
         # Convert nodes
         for node in nodes:
             op = node['op']
-            qubits = node.get('qubits', [])
-            params = node.get('params', {})
+            qubits = node.get('qubits', node.get('vqs', []))
+            params = node.get('params', node.get('args', {}))
             
             if op in ['ALLOC_LQ', 'FREE_LQ']:
                 continue
@@ -207,8 +237,8 @@ class AzureQuantumSimulatorBackend(HardwareBackend):
         circuit: Dict,
         shots: int = 1000
     ) -> str:
-        """Submit job to Azure Quantum."""
-        if not self.backend:
+        """Submit job to Azure Quantum or local simulator."""
+        if not (self.backend or self.local_simulator):
             raise RuntimeError("Backend not connected")
         
         # Convert to Qiskit circuit
@@ -219,7 +249,13 @@ class AzureQuantumSimulatorBackend(HardwareBackend):
         
         try:
             start_time = time.time()
-            job = self.backend.run(qiskit_circuit, shots=shots)
+            
+            # Use local simulator or Azure backend
+            if self.local_simulator:
+                job = self.local_simulator.run(qiskit_circuit, shots=shots)
+            else:
+                job = self.backend.run(qiskit_circuit, shots=shots)
+            
             result = job.result()
             execution_time = time.time() - start_time
             
@@ -242,6 +278,7 @@ class AzureQuantumSimulatorBackend(HardwareBackend):
                     'qmk_job_id': job_id,
                     'shots': shots,
                     'target': self.target,
+                    'mode': 'local' if self.local_simulator else 'azure',
                     'counts': counts
                 }
             )

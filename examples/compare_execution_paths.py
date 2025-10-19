@@ -24,6 +24,7 @@ sys.path.insert(0, str(ROOT))
 
 from kernel.hardware.qiskit_simulator_backend import QiskitSimulatorBackend
 from kernel.hardware.azure_quantum_simulator_backend import AzureQuantumSimulatorBackend
+from kernel.hardware.hal_interface import JobStatus
 from kernel.qir_bridge import QIRParser, QVMGraphGenerator
 from kernel.simulator.enhanced_executor import EnhancedExecutor
 
@@ -143,8 +144,8 @@ class ExecutionPathComparator:
         self.log("="*70)
         
         try:
-            backend = AzureQuantumSimulatorBackend(target='ionq.simulator')
-            backend.connect()  # Will use local mode if no credentials
+            backend = AzureQuantumSimulatorBackend(target='ionq.simulator', use_local=True)
+            backend.connect()
             
             start_time = time.time()
             job_id = backend.submit_job("azure_test", qvm_graph, shots=shots)
@@ -154,6 +155,10 @@ class ExecutionPathComparator:
             self.log(f"✓ Execution time: {result.execution_time:.4f}s")
             self.log(f"✓ Total time: {total_time:.4f}s")
             self.log(f"✓ Status: {result.status.value}")
+            
+            if result.status == JobStatus.FAILED:
+                self.log(f"✗ Error: {result.error_message}")
+                return {'path': 'azure_native', 'success': False, 'error': result.error_message}
             
             counts = result.metadata.get('counts', {})
             self.log(f"\nMeasurement counts (top 5):")
