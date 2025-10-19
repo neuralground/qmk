@@ -1,0 +1,24 @@
+# Quantum Framework Requirements
+# Install with: pip install -r requirements-quantum-frameworks.txt
+
+# Qiskit - IBM's quantum computing framework
+qiskit>=1.0.0
+qiskit-aer>=0.13.0  # High-performance simulator
+qiskit-ibm-runtime>=0.17.0  # IBM Quantum runtime
+
+# Cirq - Google's quantum computing framework
+cirq>=1.3.0
+cirq-core>=1.3.0
+
+# Azure Quantum - Microsoft's quantum development kit
+azure-quantum>=1.0.0
+qsharp>=1.0.0  # Q# language support
+
+# PyQuil - Rigetti's quantum computing framework (optional)
+pyquil>=4.0.0
+
+# Additional useful packages
+numpy>=1.24.0
+scipy>=1.10.0
+matplotlib>=3.7.0  # For visualization
+jupyter>=1.0.0  # For notebooks
