@@ -1,8 +1,14 @@
-# QMK — Quantum Microkernel (prototype repo)
+# QMK - Quantum Microkernel
 
-This repository defines a **Quantum Microkernel (QMK)** architecture for a **logical-qubit** quantum system,
+A capability-based quantum operating system with logical qubit simulation and qSyscall ABI.
+
+[![Tests](https://img.shields.io/badge/tests-146%20passing-brightgreen)](tests/)
+[![Python](https://img.shields.io/badge/python-3.8%2B-blue)](https://www.python.org/)
+[![License](https://img.shields.io/badge/license-MIT-blue)](LICENSE)
+
+**Quantum Microkernel (QMK)** architecture for a **logical-qubit** quantum system,
 supporting **multi-tenant** execution of **Quantum Virtual Machine (QVM)** programs expressed in a minimal,
-verifiable **QVM Bytecode (QVM)**.
+verifiable **QVM Bytecode**.
 
 > Design goals: microkernel minimalism, capability security, verifiability, reversibility-aware semantics,
 > and adaptability via a user-mode JIT + resource manager.
@@ -21,13 +27,26 @@ verifiable **QVM Bytecode (QVM)**.
 - **`runtime/`** — User-mode client stubs
 - **`scripts/demo_run.py`** — Runs validator and simulator on examples
 
-## Quick start
+## Quick Start
+
+### Start the Server
 ```bash
-python3 scripts/demo_run.py
+python -m kernel.qmk_server
 ```
-This will:
-1) validate the sample QVM graphs, and
-2) execute them on the QMK kernel simulator (with synthetic measurement outcomes).
+
+### Run Examples
+```bash
+# Simple Bell state
+python examples/simple_bell_state.py
+
+# Run all examples
+./examples/run_all_examples.sh
+
+# Performance benchmark
+python examples/benchmark.py
+```
+
+See **[Getting Started Guide](docs/GETTING_STARTED.md)** for detailed instructions.
 
 ## Documentation Index
 
