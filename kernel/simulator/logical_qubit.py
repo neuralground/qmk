@@ -101,16 +101,23 @@ class LogicalQubit:
         self.last_gate_time_us = self.current_time_us
         self.gate_count += 1
     
-    def measure(self, basis: str, time_us: float) -> int:
+    def measure(self, basis: str, time_us: float, angle: float = 0.0) -> int:
         """
-        Measure the logical qubit.
+        Measure the logical qubit in specified basis.
         
         Args:
-            basis: Measurement basis ("Z" or "X")
+            basis: Measurement basis ("Z", "X", "Y", or "ANGLE")
             time_us: Measurement time
+            angle: Rotation angle for arbitrary basis (used with basis="ANGLE")
         
         Returns:
             Measurement outcome (0 or 1)
+        
+        Supported bases:
+        - "Z": Computational basis (|0⟩, |1⟩)
+        - "X": Hadamard basis (|+⟩, |-⟩)
+        - "Y": Y-basis (|+i⟩, |-i⟩)
+        - "ANGLE": Arbitrary basis at angle θ from Z-axis
         """
         # Apply idle errors
         idle_duration = time_us - self.last_gate_time_us
@@ -119,11 +126,15 @@ class LogicalQubit:
                 self.qubit_id, idle_duration, self.last_gate_time_us
             )
         
-        # Determine true outcome based on logical state
+        # Determine true outcome based on logical state and basis
         if basis == "Z":
             true_outcome = self._measure_z()
         elif basis == "X":
             true_outcome = self._measure_x()
+        elif basis == "Y":
+            true_outcome = self._measure_y()
+        elif basis == "ANGLE":
+            true_outcome = self._measure_angle(angle)
         else:
             raise ValueError(f"Unknown measurement basis: {basis}")
         
@@ -281,6 +292,67 @@ class LogicalQubit:
             # Computational basis: 50/50 in X basis
             return self.rng.randint(0, 1)
         return 0
+    
+    def _measure_y(self) -> int:
+        """
+        Measure in Y basis.
+        
+        Y basis eigenstates:
+        - |+i⟩ = (|0⟩ + i|1⟩)/√2  → outcome 0
+        - |-i⟩ = (|0⟩ - i|1⟩)/√2  → outcome 1
+        
+        For our simplified model:
+        - States with positive phase → 0
+        - States with negative phase → 1
+        - Computational basis states → 50/50
+        """
+        # Y measurement can be implemented as: S† · H · Z-measurement · H · S
+        # For our simplified model, we approximate based on phase
+        if self.state == LogicalState.PLUS:
+            # |+⟩ has phase 0, maps to |+i⟩ region
+            return 0
+        elif self.state == LogicalState.MINUS:
+            # |-⟩ has phase π, maps to |-i⟩ region
+            return 1
+        elif self.state in [LogicalState.ZERO, LogicalState.ONE]:
+            # Computational basis: 50/50 in Y basis
+            return self.rng.randint(0, 1)
+        return 0
+    
+    def _measure_angle(self, angle: float) -> int:
+        """
+        Measure in arbitrary basis at angle θ from Z-axis.
+        
+        Args:
+            angle: Rotation angle in radians
+        
+        The measurement basis is:
+        - |θ+⟩ = cos(θ/2)|0⟩ + sin(θ/2)|1⟩  → outcome 0
+        - |θ-⟩ = sin(θ/2)|0⟩ - cos(θ/2)|1⟩  → outcome 1
+        
+        For our simplified model, we approximate:
+        - θ = 0: Z-basis
+        - θ = π/2: X-basis
+        - θ = π: -Z-basis
+        """
+        import math
+        
+        # Normalize angle to [0, 2π)
+        angle = angle % (2 * math.pi)
+        
+        # For simplified model, map to nearest Pauli basis
+        if angle < math.pi / 4 or angle > 7 * math.pi / 4:
+            # Close to Z-basis
+            return self._measure_z()
+        elif math.pi / 4 <= angle < 3 * math.pi / 4:
+            # Close to X-basis
+            return self._measure_x()
+        elif 3 * math.pi / 4 <= angle < 5 * math.pi / 4:
+            # Close to -Z-basis (flip result)
+            return 1 - self._measure_z()
+        else:
+            # Close to -X-basis (flip result)
+            return 1 - self._measure_x()
     
     def _run_decoder_cycle(self):
         """

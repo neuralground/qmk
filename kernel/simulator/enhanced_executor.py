@@ -247,7 +247,17 @@ class EnhancedExecutor:
     def _exec_measurement(self, node: Dict[str, Any]):
         """Execute measurement operation."""
         op = node["op"]
-        basis = "Z" if op == "MEASURE_Z" else "X"
+        # Determine measurement basis
+        if op == "MEASURE_Z":
+            basis = "Z"
+        elif op == "MEASURE_X":
+            basis = "X"
+        elif op == "MEASURE_Y":
+            basis = "Y"
+        else:
+            # Default to Z-basis for unknown measurement types
+            basis = "Z"
+        
         vq_ids = node.get("vqs", [])
         event_ids = node.get("produces", [])
         
