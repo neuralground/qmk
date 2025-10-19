@@ -11,6 +11,7 @@ from .dead_code_elimination import DeadCodeEliminationPass
 from .constant_propagation import ConstantPropagationPass
 from .swap_insertion import SWAPInsertionPass
 from .qubit_mapping import QubitMappingPass
+from .template_matching import TemplateMatchingPass
 
 __all__ = [
     'GateCancellationPass',
@@ -20,4 +21,5 @@ __all__ = [
     'ConstantPropagationPass',
     'SWAPInsertionPass',
     'QubitMappingPass',
+    'TemplateMatchingPass',
 ]
