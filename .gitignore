@@ -6,3 +6,8 @@ __pycache__/
 .env
 dist/
 build/
+
+# Generated QIR files (compiled from source on-demand)
+*.ll
+qir_examples/**/*.ll
+qir_examples/**/*.bc

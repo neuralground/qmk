@@ -91,6 +91,11 @@ See **[Getting Started Guide](docs/GETTING_STARTED.md)** for detailed instructio
   - Adaptive circuits with guards
   - Classic algorithms (Grover's, Shor's, Deutsch-Jozsa)
   - Performance benchmarking
+- **[QIR Examples](qir_examples/README.md)** — External front-end integration
+  - Q# programs compiled to QIR
+  - Qiskit circuits exported to QIR
+  - Cirq circuits exported to QIR
+  - End-to-end QIR → QVM → Execution workflow
 - **[QVM Example Programs](qvm/examples/README.md)** — QVM graph format examples
   - `bell_teleport_cnot.qvm.json` — Bell state preparation
   - `teleportation_demo.qvm.json` — Full quantum teleportation protocol
