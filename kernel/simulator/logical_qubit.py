@@ -224,6 +224,14 @@ class LogicalQubit:
             elif self.state == LogicalState.PLUS:
                 # |+⟩ → (|0⟩ + i|1⟩)/√2
                 pass  # Simplified: stays in superposition
+        
+        elif gate_type == "T":
+            # T = √S = ⁴√Z: |0⟩ → |0⟩, |1⟩ → e^(iπ/4)|1⟩
+            if self.state == LogicalState.ONE:
+                self.phase += 0.7854  # π/4 phase
+            elif self.state == LogicalState.PLUS:
+                # |+⟩ → (|0⟩ + e^(iπ/4)|1⟩)/√2
+                pass  # Simplified: stays in superposition
     
     def _measure_z(self) -> int:
         """Measure in Z basis (computational basis)."""
@@ -364,7 +372,7 @@ class TwoQubitGate:
         
         # Update timing
         cycle_time = max(control.profile.logical_cycle_time_us, 
-                        target.profile.logical_cycle_time_us)
+                       target.profile.logical_cycle_time_us)
         control.current_time_us = time_us + cycle_time
         target.current_time_us = time_us + cycle_time
         control.last_gate_time_us = control.current_time_us
@@ -372,3 +380,41 @@ class TwoQubitGate:
         
         control.gate_count += 1
         target.gate_count += 1
+    
+    @staticmethod
+    def apply_cz(control: LogicalQubit, target: LogicalQubit, time_us: float):
+        """
+        Apply CZ (Controlled-Z) gate between two logical qubits.
+        
+        CZ = H(target) · CNOT · H(target)
+        
+        Args:
+            control: Control qubit
+            target: Target qubit
+            time_us: Operation time
+        """
+        # CZ can be implemented as H-CNOT-H
+        target._apply_logical_gate("H")
+        TwoQubitGate.apply_cnot(control, target, time_us)
+        target._apply_logical_gate("H")
+        
+        # Errors already applied in CNOT
+    
+    @staticmethod
+    def apply_swap(qubit1: LogicalQubit, qubit2: LogicalQubit, time_us: float):
+        """
+        Apply SWAP gate between two logical qubits.
+        
+        SWAP = CNOT(1,2) · CNOT(2,1) · CNOT(1,2)
+        
+        Args:
+            qubit1: First qubit
+            qubit2: Second qubit
+            time_us: Operation time
+        """
+        # SWAP can be decomposed into 3 CNOTs
+        TwoQubitGate.apply_cnot(qubit1, qubit2, time_us)
+        TwoQubitGate.apply_cnot(qubit2, qubit1, time_us)
+        TwoQubitGate.apply_cnot(qubit1, qubit2, time_us)
+        
+        # Errors already applied in CNOTs

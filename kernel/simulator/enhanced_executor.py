@@ -221,15 +221,22 @@ class EnhancedExecutor:
             self.execution_log.append(("GATE", node["id"], gate_type, vq_ids[0]))
         
         elif len(vq_ids) == 2:
-            # Two-qubit gate (CNOT)
-            control = self.resource_manager.get_logical_qubit(vq_ids[0])
-            target = self.resource_manager.get_logical_qubit(vq_ids[1])
+            # Two-qubit gate
+            qubit1 = self.resource_manager.get_logical_qubit(vq_ids[0])
+            qubit2 = self.resource_manager.get_logical_qubit(vq_ids[1])
             
-            TwoQubitGate.apply_cnot(control, target, self.resource_manager.current_time_us)
+            if gate_type == "CNOT":
+                TwoQubitGate.apply_cnot(qubit1, qubit2, self.resource_manager.current_time_us)
+            elif gate_type == "CZ":
+                TwoQubitGate.apply_cz(qubit1, qubit2, self.resource_manager.current_time_us)
+            elif gate_type == "SWAP":
+                TwoQubitGate.apply_swap(qubit1, qubit2, self.resource_manager.current_time_us)
+            else:
+                raise RuntimeError(f"Unsupported two-qubit gate: {gate_type}")
             
             # Advance time
-            cycle_time = max(control.profile.logical_cycle_time_us, 
-                           target.profile.logical_cycle_time_us)
+            cycle_time = max(qubit1.profile.logical_cycle_time_us, 
+                           qubit2.profile.logical_cycle_time_us)
             self.resource_manager.advance_time(cycle_time)
             
             self.execution_log.append(("GATE", node["id"], gate_type, vq_ids))
