@@ -4,11 +4,78 @@ All notable changes to the Quantum Microkernel project.
 
 ## [Unreleased]
 
-### Phase 2.4 - Advanced Examples & Documentation (Next)
-- VQE-style circuits
-- Quantum error correction demos
-- Multi-qubit entanglement examples
-- Adaptive circuits with guards
+### Phase 4 - Multi-Tenant Security (Next)
+- Tenant namespaces
+- Handle cryptographic signing
+- Enhanced quota enforcement
+- Audit logging
+
+---
+
+## [0.4.0] - 2025-10-18
+
+### Phase 3 - Reversibility & Migration ✅
+
+#### Added
+- **REV Segment Analyzer** (`kernel/reversibility/rev_analyzer.py`)
+  - Automatic identification of reversible segments
+  - Dependency graph analysis and topological sorting
+  - Segment validation and connectivity checking
+  - Qubit liveness tracking
+  - Comprehensive statistics
+
+- **Uncomputation Engine** (`kernel/reversibility/uncomputation_engine.py`)
+  - Inverse operation generation for all unitary gates
+  - Self-inverse gates (H, X, Y, Z, CNOT)
+  - Rotation angle negation (RZ, RY, RX)
+  - S-gate inversion (S†)
+  - Cost estimation and verification
+  - Uncomputation logging
+
+- **Checkpoint Manager** (`kernel/reversibility/checkpoint_manager.py`)
+  - Quantum state snapshots at any execution point
+  - Restore capability for rollback
+  - Automatic LRU eviction
+  - Per-job checkpoint tracking
+  - Metadata support
+
+- **Migration Manager** (`kernel/reversibility/migration_manager.py`)
+  - Migration point identification (fences, measurements, boundaries)
+  - Fence-based state migration
+  - Migration validation and rollback
+  - Context switching (local ↔ remote)
+  - Migration statistics and history
+
+- **Rollback Executor** (`kernel/reversibility/rollback_executor.py`)
+  - Automatic rollback on execution failure
+  - Multiple checkpoint strategies (auto, before_measure, never)
+  - Retry with different parameters
+  - Rollback history tracking
+  - Segment-level rollback
+
+- **Reversibility Demo** (`examples/reversibility_demo.py`)
+  - Complete demonstration of all Phase 3 features
+  - REV segment analysis examples
+  - Uncomputation demonstrations
+  - Checkpoint and rollback scenarios
+  - Migration workflows
+
+- **Test Suite Expansion**
+  - 9 tests for REV Analyzer
+  - 8 tests for Uncomputation Engine
+  - 9 tests for Checkpoint Manager
+  - 7 tests for Migration Manager
+  - 5 tests for Rollback Executor
+  - **Total: 38 new tests (100% passing)**
+  - **Overall: 184 tests (100% passing)**
+
+#### Features
+- Complete reversibility infrastructure
+- Fault tolerance through automatic rollback
+- State migration for load balancing
+- Energy-efficient ancilla cleanup via uncomputation
+- Flexible execution strategies with checkpointing
+- REV segment-aware optimization
 
 ---
 
