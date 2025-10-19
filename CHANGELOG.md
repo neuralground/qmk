@@ -4,11 +4,128 @@ All notable changes to the Quantum Microkernel project.
 
 ## [Unreleased]
 
-### Phase 4 - Multi-Tenant Security (Next)
-- Tenant namespaces
-- Handle cryptographic signing
-- Enhanced quota enforcement
-- Audit logging
+### Phase 6 - QIR Bridge (Next)
+- QIR parser
+- QVM graph generation
+- Teleportation insertion
+- Resource estimation
+
+---
+
+## [0.6.0] - 2025-10-18
+
+### Phase 5 - JIT & Adaptivity ✅
+
+#### Added
+- **Profile Collector** (`kernel/jit/profile_collector.py`)
+  - Execution profile collection during runtime
+  - Performance metrics tracking (node timings, gate counts, qubit usage)
+  - Hotspot identification
+  - Historical profile analysis
+  - Optimization opportunity detection
+
+- **Variant Generator** (`kernel/jit/variant_generator.py`)
+  - Multiple QEC profile selection (surface code d3/d5/d7, color code, etc.)
+  - Optimization strategies (minimize latency/error/resources, balanced)
+  - Variant scoring and ranking
+  - Profile-guided variant generation
+  - Variant comparison and selection
+
+- **Teleportation Planner** (`kernel/jit/teleportation_planner.py`)
+  - Non-Clifford gate identification (T, T†, RZ, RY, RX)
+  - Magic state requirement calculation
+  - Optimal injection site selection
+  - Execution order optimization
+  - Magic state factory throughput estimation
+
+- **Adaptive Policy Engine** (`kernel/jit/adaptive_policy.py`)
+  - Profile-based decision making
+  - Dynamic optimization (QEC switching, parallelism adjustment)
+  - Failure recovery strategies
+  - Resource adaptation and migration
+  - Variant recommendation
+
+- **JIT Demonstration** (`examples/jit_adaptivity_demo.py`)
+  - Complete JIT workflow demonstration
+  - Profile collection and analysis
+  - Variant generation and selection
+  - Teleportation planning
+  - Adaptive decision making
+
+- **Test Suite Expansion**
+  - 11 tests for Profile Collector
+  - 10 tests for Variant Generator
+  - 9 tests for Teleportation Planner
+  - 12 tests for Adaptive Policy Engine
+  - **Total: 42 new tests (100% passing)**
+  - **Overall: 279 tests (100% passing)**
+
+#### Features
+- Complete JIT infrastructure
+- Profile-guided optimization
+- Adaptive execution strategies
+- Teleportation planning for fault-tolerant execution
+- Runtime decision making
+- Intelligent variant selection
+
+---
+
+## [0.5.0] - 2025-10-18
+
+### Phase 4 - Multi-Tenant Security & Hardening ✅
+
+#### Added
+- **Tenant Manager** (`kernel/security/tenant_manager.py`)
+  - Multi-tenant namespace isolation
+  - Per-tenant resource quotas
+  - Capability management (grant/revoke/check)
+  - Usage tracking (sessions, jobs, resources)
+  - Tenant lifecycle management
+
+- **Handle Signer** (`kernel/security/handle_signer.py`)
+  - Cryptographic signing with HMAC-SHA256
+  - Handle verification and validation
+  - Expiration support (TTL)
+  - Tamper detection
+  - Session and tenant-based revocation
+
+- **Audit Logger** (`kernel/security/audit_logger.py`)
+  - Comprehensive event logging
+  - Multiple event types (auth, resource, job, security, system)
+  - Severity levels (info, warning, error, critical)
+  - Event querying with filters
+  - Export capabilities (JSON, CSV)
+
+- **Capability Delegator** (`kernel/security/capability_delegator.py`)
+  - Capability delegation between tenants
+  - Token-based delegation with TTL
+  - Delegation revocation
+  - Effective capability tracking
+  - Delegation chain support
+
+- **Security Policy Engine** (`kernel/security/policy_engine.py`)
+  - Policy definition and management
+  - Policy evaluation with priority
+  - Rate limiting per tenant/operation
+  - Access control decisions
+  - Default security policies
+
+- **Test Suite Expansion**
+  - 15 tests for Tenant Manager
+  - 10 tests for Handle Signer
+  - 10 tests for Audit Logger
+  - 9 tests for Capability Delegator
+  - 9 tests for Policy Engine
+  - **Total: 53 new tests (100% passing)**
+  - **Overall: 237 tests (100% passing)**
+
+#### Features
+- Complete multi-tenant security infrastructure
+- Cryptographic handle security
+- Comprehensive audit trail
+- Policy-based access control
+- Rate limiting enforcement
+- Capability delegation system
 
 ---
 
