@@ -255,14 +255,15 @@ Current test coverage: **146 tests, 100% passing**
 
 ## Next Steps
 
-1. **Explore Examples**: Run all examples to see QMK capabilities
-2. **Read Specifications**: 
-   - [QVM Specification](QVM-spec.md)
-   - [qSyscall ABI](qsyscall-abi.md)
-   - [Implementation Plan](IMPLEMENTATION_PLAN.md)
-3. **Create Your Own Circuits**: Use the client library to build custom quantum programs
-4. **Run Benchmarks**: Measure performance for your use case
-5. **Contribute**: Check the implementation plan for future phases
+1. **Work Through the Tutorial**: Follow the [Tutorial](TUTORIAL.md) for step-by-step guidance
+2. **Explore Examples**: Run all examples to see QMK capabilities
+3. **Read Core Specifications**: 
+   - [QVM Specification](QVM-spec.md) — Complete technical reference
+   - [qSyscall ABI](qsyscall-abi.md) — Kernel interface details
+   - [Quick Reference](QUICK_REFERENCE.md) — Fast lookup for common patterns
+4. **Create Your Own Circuits**: Use the client library to build custom quantum programs
+5. **Run Benchmarks**: Measure performance for your use case
+6. **Dive Deeper**: Explore [Architecture](architecture.md), [Security Model](security-model.md), and other technical deep dives
 
 ## Troubleshooting
 

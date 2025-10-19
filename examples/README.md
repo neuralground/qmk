@@ -304,6 +304,8 @@ Sessions track:
 
 ## Further Reading
 
+- [Getting Started Guide](../docs/GETTING_STARTED.md)
+- [Tutorial](../docs/TUTORIAL.md)
 - [QVM Specification](../docs/QVM-spec.md)
 - [qSyscall ABI](../docs/qsyscall-abi.md)
-- [Implementation Plan](../docs/IMPLEMENTATION_PLAN.md)
+- [Quick Reference](../docs/QUICK_REFERENCE.md)

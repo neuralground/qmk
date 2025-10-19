@@ -80,24 +80,15 @@
 - Batch measurements to reduce decoder peaks.
 - Cache composite operations (teleportation macros) in JIT.
 
-## 14. Implementation Plan / Roadmap
-**Phase 1 — Spec & Prototype (this repo)**
-- QVM schema + validator; kernel simulator with mapping/scheduling/caps; demo programs.
+## 14. Evolution & Future Directions
 
-**Phase 2 — Security & Reversibility**
-- Formal linear type checker; REV segment checker; rollback/migration demo; capability delegation scopes.
+The architecture is designed to support incremental enhancement in several key areas:
 
-**Phase 3 — JIT & Adaptivity**
-- Profile ingest; variant generation; simple policy engine reacting to telemetry; magic-state throughput modeling.
+- **Advanced Reversibility**: Formal REV segment analysis, rollback/migration capabilities
+- **JIT & Adaptivity**: Profile-guided optimization, variant generation, policy engines
+- **Multi-tenant Hardening**: Enhanced isolation, quotas, attestation, replay tools
+- **Hardware Integration**: HAL abstractions, device drivers, entanglement service backends
+- **Compiler Integration**: QIR/MLIR bridges, teleportation planning passes
+- **Verification**: Formal methods, fuzzing, SMT-backed proofs, conformance suites
 
-**Phase 4 — Multi-tenant & Quotas**
-- Tenant namespaces; quotas; fair scheduler; attestation logs & replay tools.
-
-**Phase 5 — Hardware Adapters**
-- HAL shims; simulated drivers; plug-ins for entanglement service backends.
-
-**Phase 6 — QIR Bridge**
-- QIR→QVM lowerer; pass library for teleportation planning; cost model integration with Azure QRE.
-
-**Phase 7 — Hardening**
-- Fuzzing, SMT-backed verification, capability audit, reference conformance suite.
+For detailed implementation roadmap and milestones, see [Implementation Plan](IMPLEMENTATION_PLAN.md).

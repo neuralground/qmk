@@ -53,8 +53,11 @@ See **[Getting Started Guide](docs/GETTING_STARTED.md)** for detailed instructio
 ### 📖 Getting Started (Read in Order)
 
 1. **[Overview](docs/overview.md)** — High-level introduction to QMK
-2. **[Design & Architecture](docs/design-architecture-spec.md)** — System architecture, goals, and roadmap
-3. **[QVM Specification](docs/QVM-spec.md)** ⭐ — **Complete QVM specification** (primary reference)
+2. **[Getting Started Guide](docs/GETTING_STARTED.md)** — Installation, quick start, and basic usage
+3. **[Tutorial](docs/TUTORIAL.md)** — Step-by-step guide to building quantum applications
+4. **[Quick Reference](docs/QUICK_REFERENCE.md)** — Fast reference for common operations
+5. **[Design & Architecture](docs/design-architecture-spec.md)** — System architecture and goals
+6. **[QVM Specification](docs/QVM-spec.md)** ⭐ — **Complete QVM specification** (primary reference)
    - Introduction and design principles
    - Resource handles (VQ, CH, EV, CAP, BND)
    - Graph structure and format
@@ -62,7 +65,7 @@ See **[Getting Started Guide](docs/GETTING_STARTED.md)** for detailed instructio
    - Execution semantics and reversibility
    - Security model and conformance
    - Future extensions
-4. **[QVM Instruction Reference](docs/QVM-instruction-reference.md)** — Detailed opcode documentation
+7. **[QVM Instruction Reference](docs/QVM-instruction-reference.md)** — Detailed opcode documentation
    - All 20 operations with examples
    - Capability requirements
    - Reversibility classification
@@ -74,11 +77,17 @@ See **[Getting Started Guide](docs/GETTING_STARTED.md)** for detailed instructio
 - **[Security Model](docs/security-model.md)** — Capability security and isolation
 - **[Reversibility](docs/reversibility.md)** — REV segments and uncomputation
 - **[Scheduling](docs/scheduling.md)** — Epoch-based scheduling model
+- **[Azure QRE Compatibility](docs/AZURE_QRE_COMPATIBILITY.md)** — Integration with Azure Quantum Resource Estimator
 - **[Testing](docs/testing.md)** — Testing strategy
 
 ### 💻 Examples & Tools
 
-- **[Example Programs](qvm/examples/README.md)** — Comprehensive guide to all examples
+- **[Python Examples](examples/README.md)** — Working examples using the client library
+  - Bell states, VQE ansatz, multi-qubit entanglement
+  - Adaptive circuits with guards
+  - Classic algorithms (Grover's, Shor's, Deutsch-Jozsa)
+  - Performance benchmarking
+- **[QVM Example Programs](qvm/examples/README.md)** — QVM graph format examples
   - `bell_teleport_cnot.qvm.json` — Bell state preparation
   - `teleportation_demo.qvm.json` — Full quantum teleportation protocol
   - `ghz_state.qvm.json` — 4-qubit GHZ state
@@ -90,54 +99,42 @@ See **[Getting Started Guide](docs/GETTING_STARTED.md)** for detailed instructio
 ### 📚 Reference Materials
 
 **Suggested Reading Order for New Contributors:**
-1. Start with [Overview](docs/overview.md) for context
-2. Read [Design & Architecture](docs/design-architecture-spec.md) for the big picture
-3. Study [QVM Specification](docs/QVM-spec.md) for complete details
-4. Explore [Example Programs](qvm/examples/README.md) to see QVM in action
-5. Consult [Instruction Reference](docs/QVM-instruction-reference.md) as needed
-6. Deep dive into specific topics (security, scheduling, etc.) as relevant
+1. Start with [Overview](docs/overview.md) for high-level context
+2. Follow the [Getting Started Guide](docs/GETTING_STARTED.md) to run your first example
+3. Work through the [Tutorial](docs/TUTORIAL.md) to build quantum applications
+4. Read [Design & Architecture](docs/design-architecture-spec.md) for system architecture
+5. Study [QVM Specification](docs/QVM-spec.md) for complete technical details
+6. Explore [Python Examples](examples/README.md) and [QVM Examples](qvm/examples/README.md)
+7. Consult [Instruction Reference](docs/QVM-instruction-reference.md) and [Quick Reference](docs/QUICK_REFERENCE.md) as needed
+8. Deep dive into specific topics ([Security](docs/security-model.md), [Scheduling](docs/scheduling.md), [qSyscall ABI](docs/qsyscall-abi.md), etc.) as relevant
 
-## Status
+## Current Status
 
-**Phase 1 ✅ COMPLETE** - Specifications & Validation
-- ✅ Comprehensive QVM specification (690+ lines, JVM-style)
-- ✅ QVM instruction reference (20 operations documented)
-- ✅ JSON Schema with validation rules
-- ✅ Enhanced validator (linearity, capabilities, DAG, REV segments)
-- ✅ qSyscall ABI specification (600+ lines)
-- ✅ Azure QRE compatibility layer
-- ✅ Example programs (5 examples)
-
-**Phase 2 ✅ COMPLETE** - QMK Kernel Implementation
-- ✅ Logical qubit simulator with error models
-- ✅ QEC profiles (Surface, SHYPS, Bacon-Shor)
-- ✅ Azure QRE full compatibility
-- ✅ Enhanced kernel executor (all QVM operations)
-- ✅ Resource manager with telemetry
-- ✅ Session manager with capability negotiation
-- ✅ Job manager with async execution
-- ✅ RPC server (JSON-RPC 2.0 over Unix sockets)
-- ✅ qSyscall ABI handlers (7 syscalls)
-- ✅ Python client library
-- ✅ **146 automated tests (100% passing)**
-
-**Examples & Demos:**
-- ✅ Simple Bell state preparation
-- ✅ VQE-style ansatz circuits
-- ✅ Multi-qubit entanglement (GHZ, W states)
-- ✅ Adaptive circuits with guards
-- ✅ Performance benchmarking suite
+**Implemented Features:**
+- Comprehensive QVM specification with 20 documented operations
+- JSON Schema with validation rules and enhanced validator
+- qSyscall ABI specification (600+ lines)
+- Azure QRE compatibility layer
+- Logical qubit simulator with configurable error models
+- QEC profiles (Surface, SHYPS, Bacon-Shor)
+- Enhanced kernel executor supporting all QVM operations
+- Resource manager with telemetry
+- Session manager with capability negotiation
+- Job manager with async execution
+- RPC server (JSON-RPC 2.0 over Unix sockets)
+- Python client library
+- Comprehensive example programs (Bell states, VQE, GHZ/W states, adaptive circuits)
+- Performance benchmarking suite
 
 **Test Coverage:**
 ```
-Total Tests: 146
+Total Tests: 146 (100% passing)
   Session Manager: 19 tests
   Job Manager: 19 tests
   Integration: 9 tests
   Simulator: 67 tests
   Executor: 10 tests
   Other: 22 tests
-Success Rate: 100%
 ```
 
-**Next:** Phase 3 (Reversibility), Phase 4 (Multi-tenant security), Phase 5 (JIT), Phase 6 (QIR bridge), Phase 7 (Hardware adapters)
+For future development roadmap, see [Implementation Plan](docs/IMPLEMENTATION_PLAN.md).
