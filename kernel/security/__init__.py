@@ -1,12 +1,14 @@
 """
 Security and Multi-Tenant Support
 
-Implements tenant isolation, handle signing, and audit logging.
+Implements tenant isolation, handle signing, audit logging, capability delegation, and policy enforcement.
 """
 
 from .tenant_manager import TenantManager, Tenant, TenantQuota
 from .handle_signer import HandleSigner, SignedHandle
 from .audit_logger import AuditLogger, AuditEvent, AuditEventType, AuditSeverity
+from .capability_delegator import CapabilityDelegator, DelegationToken
+from .policy_engine import SecurityPolicyEngine, Policy, PolicyAction, PolicyDecision
 
 __all__ = [
     "TenantManager",
@@ -18,4 +20,10 @@ __all__ = [
     "AuditEvent",
     "AuditEventType",
     "AuditSeverity",
+    "CapabilityDelegator",
+    "DelegationToken",
+    "SecurityPolicyEngine",
+    "Policy",
+    "PolicyAction",
+    "PolicyDecision",
 ]
