@@ -14,6 +14,8 @@ from .qubit_mapping import QubitMappingPass
 from .template_matching import TemplateMatchingPass
 from .measurement_deferral import MeasurementDeferralPass
 from .clifford_t_optimization import CliffordTPlusOptimizationPass
+from .magic_state_optimization import MagicStateOptimizationPass
+from .gate_teleportation import GateTeleportationPass
 
 __all__ = [
     'GateCancellationPass',
@@ -26,4 +28,6 @@ __all__ = [
     'TemplateMatchingPass',
     'MeasurementDeferralPass',
     'CliffordTPlusOptimizationPass',
+    'MagicStateOptimizationPass',
+    'GateTeleportationPass',
 ]
