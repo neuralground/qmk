@@ -140,6 +140,84 @@ python examples/benchmark.py
 - Scaling factors
 - Resource utilization
 
+---
+
+## Classic Quantum Algorithms
+
+### 6. Grover's Search Algorithm (`grovers_algorithm.py`)
+
+Demonstrates Grover's algorithm for unstructured search:
+- Quadratic speedup over classical search
+- Oracle implementation for marking target states
+- Diffusion operator (amplitude amplification)
+- Searches 4-element database (2 qubits)
+
+**Run:**
+```bash
+python examples/grovers_algorithm.py
+```
+
+**Features:**
+- Tests all possible target states (00, 01, 10, 11)
+- Statistical analysis of measurement outcomes
+- Scaling comparison (classical vs quantum)
+- Success rate verification
+
+**Expected Results:**
+- ~100% success rate finding target state
+- O(√N) queries vs O(N) classical
+
+### 7. Shor's Factoring Algorithm (`shors_algorithm.py`)
+
+Demonstrates Shor's algorithm for integer factorization:
+- Quantum period finding subroutine
+- Quantum Fourier Transform (QFT)
+- Classical post-processing
+- Factors N=15 using a=7
+
+**Run:**
+```bash
+python examples/shors_algorithm.py
+```
+
+**Features:**
+- Period finding demonstration
+- QFT circuit construction
+- Classical factor extraction
+- Exponential speedup explanation
+- Scaling analysis
+
+**Impact:**
+- Can break RSA encryption
+- Motivates post-quantum cryptography
+
+### 8. Deutsch-Jozsa Algorithm (`deutsch_jozsa.py`)
+
+Demonstrates the Deutsch-Jozsa algorithm:
+- Determines if function is constant or balanced
+- Exponential speedup (1 query vs 2^(n-1)+1)
+- Tests multiple oracle types
+- 2-qubit implementation
+
+**Run:**
+```bash
+python examples/deutsch_jozsa.py
+```
+
+**Features:**
+- 5 different oracle implementations:
+  - Constant (always 0)
+  - Constant (always 1)
+  - Balanced (f = x₀)
+  - Balanced (f = x₁)
+  - Balanced (f = x₀ ⊕ x₁)
+- Automatic verification
+- Classical vs quantum comparison
+
+**Key Insight:**
+- Quantum: 1 query regardless of input size
+- Classical: Up to 2^(n-1)+1 queries needed
+
 ## Client Library API
 
 ### Basic Usage
