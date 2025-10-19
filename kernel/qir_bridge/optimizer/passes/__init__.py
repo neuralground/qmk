@@ -13,6 +13,7 @@ from .swap_insertion import SWAPInsertionPass
 from .qubit_mapping import QubitMappingPass
 from .template_matching import TemplateMatchingPass
 from .measurement_deferral import MeasurementDeferralPass
+from .clifford_t_optimization import CliffordTPlusOptimizationPass
 
 __all__ = [
     'GateCancellationPass',
@@ -24,4 +25,5 @@ __all__ = [
     'QubitMappingPass',
     'TemplateMatchingPass',
     'MeasurementDeferralPass',
+    'CliffordTPlusOptimizationPass',
 ]
