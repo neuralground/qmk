@@ -355,8 +355,8 @@ Compute logical qubit resources from Azure QRE config.
 
 - [Azure QRE Documentation](https://learn.microsoft.com/en-us/azure/quantum/intro-to-resource-estimation)
 - [Azure QRE Target Parameters](https://learn.microsoft.com/en-us/azure/quantum/overview-resources-estimator)
-- [QMK QEC Profiles](qec_profiles.py)
-- [QMK Azure QRE Compatibility Layer](azure_qre_compat.py)
+- [QMK QEC Profiles](../kernel/simulator/qec_profiles.py)
+- [QMK Azure QRE Compatibility Layer](../kernel/simulator/azure_qre_compat.py)
 
 ---
 
