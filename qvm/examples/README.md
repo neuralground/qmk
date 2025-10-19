@@ -2,6 +2,24 @@
 
 This directory contains example QVM graphs demonstrating various features of the Quantum Virtual Machine specification.
 
+## Formats
+
+Examples are available in two formats:
+
+- **JSON** (`.qvm.json`) — Machine-readable format for execution
+- **Assembly** (`.qvm.asm`) — Human-readable format for writing programs
+
+Use the assembler/disassembler tools to convert between formats:
+```bash
+# Assembly to JSON
+python qvm/tools/qvm_asm.py bell_state.qvm.asm bell_state.qvm.json
+
+# JSON to Assembly
+python qvm/tools/qvm_disasm.py bell_teleport_cnot.qvm.json bell_teleport_cnot.qvm.asm
+```
+
+See [QVM Assembly Language](../../docs/QVM-ASSEMBLY.md) for complete documentation.
+
 ## Examples
 
 ### bell_teleport_cnot.qvm.json

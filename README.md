@@ -69,6 +69,10 @@ See **[Getting Started Guide](docs/GETTING_STARTED.md)** for detailed instructio
    - All 20 operations with examples
    - Capability requirements
    - Reversibility classification
+8. **[QVM Assembly Language](docs/QVM-ASSEMBLY.md)** — Human-readable assembly format
+   - Simpler syntax than JSON
+   - Full round-trip conversion
+   - Assembler and disassembler tools
 
 ### 🔧 Technical Deep Dives
 
@@ -95,6 +99,8 @@ See **[Getting Started Guide](docs/GETTING_STARTED.md)** for detailed instructio
   - `reversible_segment.qvm.json` — REV segment demonstration
 - **[JSON Schema](qvm/qvm_schema.json)** — Canonical QVM format schema
 - **[Validator Tool](qvm/tools/qvm_validate.py)** — Graph validation with linearity checks
+- **[Assembler](qvm/tools/qvm_asm.py)** — Convert assembly to JSON
+- **[Disassembler](qvm/tools/qvm_disasm.py)** — Convert JSON to assembly
 
 ### 📚 Reference Materials
 
