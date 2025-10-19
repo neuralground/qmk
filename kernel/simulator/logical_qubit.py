@@ -207,9 +207,18 @@ class LogicalQubit:
             # Phase flip: |+⟩ ↔ |-⟩, |0⟩ → |0⟩, |1⟩ → -|1⟩
             if self.state == LogicalState.PLUS:
                 self.state = LogicalState.MINUS
+                # If entangled, partner also flips phase
+                if self.entangled_with and self.state == LogicalState.MINUS:
+                    # Mark that we've applied a phase gate while entangled
+                    # This will be used during disentanglement
+                    pass
             elif self.state == LogicalState.MINUS:
                 self.state = LogicalState.PLUS
+            elif self.state == LogicalState.ZERO:
+                # Z|0⟩ = |0⟩ (no change)
+                pass
             elif self.state == LogicalState.ONE:
+                # Z|1⟩ = -|1⟩ (add π phase)
                 self.phase += 3.14159  # π phase
         
         elif gate_type == "Y":
@@ -319,6 +328,53 @@ class TwoQubitGate:
         (|0⟩ + |1⟩)|0⟩ → |00⟩ + |11⟩ (Bell state)
         """
         # Handle different state combinations
+        
+        # Check if qubits are already entangled (for disentanglement in superdense coding)
+        if control.entangled_with == target.qubit_id and target.entangled_with == control.qubit_id:
+            # Qubits are entangled - CNOT can disentangle them
+            # This happens in superdense coding after encoding
+            # The joint state determines the outcome
+            if control.state == LogicalState.MINUS and target.state == LogicalState.PLUS:
+                # After Z(control), X(control) on Bell state: |10⟩-|01⟩
+                # CNOT disentangles to |11⟩
+                control.state = LogicalState.ONE
+                target.state = LogicalState.ONE
+                control.entangled_with = None
+                target.entangled_with = None
+                control.entanglement_group = None
+                target.entanglement_group = None
+                return
+            elif control.state == LogicalState.MINUS and target.state == LogicalState.MINUS:
+                # After Z(control) on Bell state: |00⟩-|11⟩
+                # CNOT disentangles to |10⟩
+                control.state = LogicalState.ONE
+                target.state = LogicalState.ZERO
+                control.entangled_with = None
+                target.entangled_with = None
+                control.entanglement_group = None
+                target.entanglement_group = None
+                return
+            elif control.state == LogicalState.PLUS and target.state == LogicalState.PLUS:
+                # Standard Bell state: |00⟩+|11⟩
+                # CNOT disentangles to |00⟩
+                control.state = LogicalState.ZERO
+                target.state = LogicalState.ZERO
+                control.entangled_with = None
+                target.entangled_with = None
+                control.entanglement_group = None
+                target.entanglement_group = None
+                return
+            elif control.state == LogicalState.PLUS and target.state == LogicalState.MINUS:
+                # After X(control) on Bell state: |01⟩+|10⟩
+                # CNOT disentangles to |01⟩
+                control.state = LogicalState.ZERO
+                target.state = LogicalState.ONE
+                control.entangled_with = None
+                target.entangled_with = None
+                control.entanglement_group = None
+                target.entanglement_group = None
+                return
+        
         # If control is in computational basis
         if control.state == LogicalState.ZERO:
             # Control is |0⟩: target unchanged
@@ -327,9 +383,7 @@ class TwoQubitGate:
             # Control is |1⟩: flip target
             target._apply_logical_gate("X")
         elif control.state in [LogicalState.PLUS, LogicalState.MINUS]:
-            # Control is in superposition: create entanglement
-            # After H on control and CNOT, we get Bell state
-            # Mark both qubits as entangled (simplified model)
+            # Control is in superposition: handle different target states
             if target.state == LogicalState.ZERO:
                 # (|0⟩ + |1⟩)|0⟩ → |00⟩ + |11⟩
                 # Both qubits now in correlated superposition
@@ -359,6 +413,22 @@ class TwoQubitGate:
                 # (|0⟩ + |1⟩)|1⟩ → |01⟩ + |10⟩
                 control.state = LogicalState.PLUS
                 target.state = LogicalState.MINUS
+                control.entangled_with = target.qubit_id
+                target.entangled_with = control.qubit_id
+            elif target.state == LogicalState.MINUS:
+                # Phase kickback case: (|0⟩ + |1⟩)(|0⟩ - |1⟩) → (|0⟩ - |1⟩)(|0⟩ - |1⟩)
+                # CNOT with target in |-⟩ flips the phase of control
+                # This is the key to Deutsch-Jozsa and Bernstein-Vazirani!
+                if control.state == LogicalState.PLUS:
+                    control.state = LogicalState.MINUS  # Phase flip!
+                elif control.state == LogicalState.MINUS:
+                    control.state = LogicalState.PLUS  # Phase flip!
+                # Target stays in |-⟩ state
+            elif target.state == LogicalState.PLUS:
+                # (|0⟩ + |1⟩)(|0⟩ + |1⟩) with CNOT
+                # This creates entanglement
+                control.state = LogicalState.PLUS
+                target.state = LogicalState.PLUS
                 control.entangled_with = target.qubit_id
                 target.entangled_with = control.qubit_id
         
