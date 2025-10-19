@@ -64,6 +64,10 @@ class LogicalQubit:
         self.gate_count = 0
         self.measurement_count = 0
         self.correction_count = 0
+        
+        # Entanglement tracking (simplified)
+        self.entangled_with = None  # ID of entangled qubit
+        self.measurement_outcome = None  # Cached measurement result
     
     def apply_gate(self, gate_type: str, time_us: float):
         """
@@ -228,7 +232,15 @@ class LogicalQubit:
             return 1
         elif self.state in [LogicalState.PLUS, LogicalState.MINUS]:
             # Superposition: 50/50 outcome
-            return self.rng.randint(0, 1)
+            # If entangled, use cached outcome for correlation
+            if self.entangled_with is not None and self.measurement_outcome is not None:
+                # Already measured - return cached result
+                return self.measurement_outcome
+            else:
+                # First measurement - choose randomly
+                outcome = self.rng.randint(0, 1)
+                self.measurement_outcome = outcome
+                return outcome
         return 0
     
     def _measure_x(self) -> int:
@@ -277,12 +289,42 @@ class TwoQubitGate:
             control: Control qubit
             target: Target qubit
             time_us: Operation time
-        """
-        # Simplified CNOT: if control is |1⟩, flip target
-        control_outcome = control._measure_z()  # Peek at control state
         
-        if control_outcome == 1:
+        CNOT truth table:
+        |00⟩ → |00⟩
+        |01⟩ → |01⟩
+        |10⟩ → |11⟩
+        |11⟩ → |10⟩
+        
+        For superpositions:
+        (|0⟩ + |1⟩)|0⟩ → |00⟩ + |11⟩ (Bell state)
+        """
+        # Handle different state combinations
+        # If control is in computational basis
+        if control.state == LogicalState.ZERO:
+            # Control is |0⟩: target unchanged
+            pass
+        elif control.state == LogicalState.ONE:
+            # Control is |1⟩: flip target
             target._apply_logical_gate("X")
+        elif control.state in [LogicalState.PLUS, LogicalState.MINUS]:
+            # Control is in superposition: create entanglement
+            # After H on control and CNOT, we get Bell state
+            # Mark both qubits as entangled (simplified model)
+            if target.state == LogicalState.ZERO:
+                # (|0⟩ + |1⟩)|0⟩ → |00⟩ + |11⟩
+                # Both qubits now in correlated superposition
+                control.state = LogicalState.PLUS  # Keep superposition
+                target.state = LogicalState.PLUS   # Now also in superposition
+                # Store correlation info (simplified)
+                control.entangled_with = target.qubit_id
+                target.entangled_with = control.qubit_id
+            elif target.state == LogicalState.ONE:
+                # (|0⟩ + |1⟩)|1⟩ → |01⟩ + |10⟩
+                control.state = LogicalState.PLUS
+                target.state = LogicalState.MINUS
+                control.entangled_with = target.qubit_id
+                target.entangled_with = control.qubit_id
         
         # Apply errors to both qubits
         control.error_model.apply_gate_errors(control.qubit_id, time_us)

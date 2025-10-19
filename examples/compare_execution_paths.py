@@ -73,17 +73,25 @@ class ExecutionPathComparator:
             }
         elif circuit_type == 'ghz_3':
             return {
-                'name': 'ghz_3',
-                'nodes': [
-                    {'id': 'alloc', 'op': 'ALLOC_LQ', 'args': {'n': 3, 'profile': 'logical:surface_code(d=3)'}, 'qubits': ['q0', 'q1', 'q2']},
-                    {'id': 'h', 'op': 'H', 'qubits': ['q0']},
-                    {'id': 'cnot1', 'op': 'CNOT', 'qubits': ['q0', 'q1']},
-                    {'id': 'cnot2', 'op': 'CNOT', 'qubits': ['q0', 'q2']},
-                    {'id': 'm0', 'op': 'MEASURE_Z', 'qubits': ['q0']},
-                    {'id': 'm1', 'op': 'MEASURE_Z', 'qubits': ['q1']},
-                    {'id': 'm2', 'op': 'MEASURE_Z', 'qubits': ['q2']},
-                    {'id': 'free', 'op': 'FREE_LQ', 'qubits': ['q0', 'q1', 'q2']}
-                ],
+                'version': '0.1',
+                'program': {
+                    'nodes': [
+                        {'id': 'alloc', 'op': 'ALLOC_LQ', 'args': {'n': 3, 'profile': 'logical:surface_code(d=3)'}, 'vqs': ['q0', 'q1', 'q2'], 'caps': ['CAP_ALLOC']},
+                        {'id': 'h', 'op': 'APPLY_H', 'vqs': ['q0']},
+                        {'id': 'cnot1', 'op': 'APPLY_CNOT', 'vqs': ['q0', 'q1']},
+                        {'id': 'cnot2', 'op': 'APPLY_CNOT', 'vqs': ['q0', 'q2']},
+                        {'id': 'm0', 'op': 'MEASURE_Z', 'vqs': ['q0'], 'produces': ['m0']},
+                        {'id': 'm1', 'op': 'MEASURE_Z', 'vqs': ['q1'], 'produces': ['m1']},
+                        {'id': 'm2', 'op': 'MEASURE_Z', 'vqs': ['q2'], 'produces': ['m2']},
+                        {'id': 'free', 'op': 'FREE_LQ', 'vqs': ['q0', 'q1', 'q2']}
+                    ]
+                },
+                'resources': {
+                    'vqs': ['q0', 'q1', 'q2'],
+                    'chs': [],
+                    'events': ['m0', 'm1', 'm2']
+                },
+                'caps': ['CAP_ALLOC'],
                 'metadata': {'description': '3-qubit GHZ state'}
             }
         else:

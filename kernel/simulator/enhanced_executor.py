@@ -250,6 +250,15 @@ class EnhancedExecutor:
         qubit = self.resource_manager.get_logical_qubit(vq_ids[0])
         outcome = qubit.measure(basis, self.resource_manager.current_time_us)
         
+        # If this qubit is entangled, propagate the outcome to its partner
+        if qubit.entangled_with is not None:
+            try:
+                partner = self.resource_manager.get_logical_qubit(qubit.entangled_with)
+                # For Bell state |00⟩ + |11⟩, both measurements should match
+                partner.measurement_outcome = outcome
+            except:
+                pass  # Partner may not exist or already measured
+        
         # Store event
         if event_ids:
             self.events[event_ids[0]] = outcome
