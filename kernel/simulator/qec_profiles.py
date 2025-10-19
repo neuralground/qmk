@@ -265,6 +265,43 @@ def bacon_shor_code(distance: int = 9, gate_error: float = 1e-3) -> QECProfile:
     )
 
 
+def qldpc_code(distance: int = 9, gate_error: float = 1e-3, rate: float = 0.1) -> QECProfile:
+    """
+    QLDPC (Quantum Low-Density Parity-Check) code configuration.
+    
+    More efficient encoding than surface codes with better rates.
+    Physical qubits: ~d^2/rate (better scaling for high-rate codes)
+    
+    Args:
+        distance: Code distance
+        gate_error: Physical gate error rate
+        rate: Code rate (k/n, typically 0.05-0.2 for good QLDPC codes)
+    
+    Returns:
+        QECProfile for QLDPC code
+    """
+    # QLDPC codes have better qubit efficiency
+    # Physical qubits ≈ d²/rate (vs 2d² for surface code)
+    physical_qubits = int((distance * distance) / rate)
+    
+    # Longer cycle times due to more complex syndrome extraction
+    cycle_time_us = distance * 0.15
+    
+    return QECProfile(
+        code_family="QLDPC",
+        code_distance=distance,
+        physical_qubit_count=physical_qubits,
+        logical_cycle_time_us=cycle_time_us,
+        physical_gate_error_rate=gate_error,
+        measurement_error_rate=gate_error * 10,
+        idle_error_rate=gate_error / 10,
+        t1_us=100.0,
+        t2_us=80.0,
+        decoder_type="BP",  # Belief Propagation
+        decoder_cycle_time_us=0.15
+    )
+
+
 def parse_profile_string(profile_str: str) -> QECProfile:
     """
     Parse QEC profile from string format used in QVM graphs.
@@ -315,6 +352,10 @@ def parse_profile_string(profile_str: str) -> QECProfile:
         return shyps_code(distance)
     elif code_family_lower == "bacon_shor":
         return bacon_shor_code(distance)
+    elif code_family_lower == "qldpc":
+        # Extract rate if provided
+        rate = params.get("rate", 0.1)
+        return qldpc_code(distance, rate=rate)
     else:
         raise ValueError(f"Unknown code family: {code_family}")
 
@@ -330,6 +371,9 @@ STANDARD_PROFILES = {
     "shyps_d9": shyps_code(9),
     "bacon_shor_d5": bacon_shor_code(5),
     "bacon_shor_d7": bacon_shor_code(7),
+    "qldpc_d9_r01": qldpc_code(9, rate=0.1),
+    "qldpc_d9_r02": qldpc_code(9, rate=0.2),
+    "qldpc_d13_r01": qldpc_code(13, rate=0.1),
 }
 
 
