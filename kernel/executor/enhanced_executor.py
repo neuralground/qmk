@@ -12,6 +12,10 @@ from kernel.simulator.qec_profiles import parse_profile_string
 from kernel.simulator.logical_qubit import TwoQubitGate
 from kernel.simulator.capabilities import DEFAULT_CAPS, has_caps
 from kernel.simulator.scheduler import topo_schedule
+from kernel.security.entanglement_firewall import (
+    EntanglementGraph,
+    EntanglementFirewallViolation
+)
 
 
 # Capability requirements for operations
@@ -40,7 +44,8 @@ class EnhancedExecutor:
     
     def __init__(self, max_physical_qubits: int = 10000, 
                  seed: Optional[int] = None,
-                 caps: Optional[Dict[str, bool]] = None):
+                 caps: Optional[Dict[str, bool]] = None,
+                 entanglement_firewall: Optional[EntanglementGraph] = None):
         """
         Initialize executor.
         
@@ -48,12 +53,21 @@ class EnhancedExecutor:
             max_physical_qubits: Maximum physical qubits available
             seed: Random seed for deterministic execution
             caps: Capability overrides
+            entanglement_firewall: Optional entanglement firewall for multi-tenant security
         """
-        self.resource_manager = EnhancedResourceManager(max_physical_qubits, seed)
-        self.caps = DEFAULT_CAPS.copy()
-        if caps:
-            self.caps.update(caps)
+        self.resource_manager = EnhancedResourceManager(
+            max_physical_qubits=max_physical_qubits,
+            seed=seed
+        )
+        self.caps = caps or DEFAULT_CAPS.copy()
+        self.execution_log: List = []
+        self.events: Dict[str, Any] = {}
         
+        # Entanglement firewall for multi-tenant security
+        self.entanglement_firewall = entanglement_firewall
+        
+        # Track qubit tenant ownership for firewall
+        self.qubit_tenants: Dict[str, str] = {}      
         # Event storage (measurement outcomes)
         self.events: Dict[str, int] = {}
         
@@ -184,12 +198,26 @@ class EnhancedExecutor:
         # Allocate logical qubits
         allocated = self.resource_manager.alloc_logical_qubits(vq_ids, profile)
         
+        # Register qubits with entanglement firewall
+        if self.entanglement_firewall is not None:
+            tenant_id = args.get("tenant_id", "default")
+            for vq_id in vq_ids:
+                self.entanglement_firewall.register_qubit(vq_id, tenant_id)
+                self.qubit_tenants[vq_id] = tenant_id
+        
         self.execution_log.append(("ALLOC", node["id"], vq_ids, profile.code_family, allocated))
     
     def _exec_free(self, node: Dict[str, Any]):
         """Execute FREE_LQ operation."""
         vq_ids = node.get("vqs", [])
         self.resource_manager.free_logical_qubits(vq_ids)
+        
+        # Unregister qubits from entanglement firewall
+        if self.entanglement_firewall is not None:
+            for vq_id in vq_ids:
+                self.entanglement_firewall.unregister_qubit(vq_id)
+                if vq_id in self.qubit_tenants:
+                    del self.qubit_tenants[vq_id]
         
         self.execution_log.append(("FREE", node["id"], vq_ids))
     
@@ -221,9 +249,27 @@ class EnhancedExecutor:
             self.execution_log.append(("GATE", node["id"], gate_type, vq_ids[0]))
         
         elif len(vq_ids) == 2:
-            # Two-qubit gate
-            qubit1 = self.resource_manager.get_logical_qubit(vq_ids[0])
-            qubit2 = self.resource_manager.get_logical_qubit(vq_ids[1])
+            # Two-qubit gate - check entanglement firewall
+            vq1_id, vq2_id = vq_ids[0], vq_ids[1]
+            
+            # Firewall check for cross-tenant entanglement
+            if self.entanglement_firewall is not None:
+                # Get channel if provided in node args
+                channel = node.get("args", {}).get("channel")
+                
+                # Add entanglement (firewall will check authorization)
+                try:
+                    self.entanglement_firewall.add_entanglement(
+                        vq1_id, vq2_id, gate_type, channel
+                    )
+                except EntanglementFirewallViolation as e:
+                    # Log violation and re-raise
+                    self.execution_log.append(("FIREWALL_VIOLATION", node["id"], str(e)))
+                    raise
+            
+            # Execute gate
+            qubit1 = self.resource_manager.get_logical_qubit(vq1_id)
+            qubit2 = self.resource_manager.get_logical_qubit(vq2_id)
             
             if gate_type == "CNOT":
                 TwoQubitGate.apply_cnot(qubit1, qubit2, self.resource_manager.current_time_us)
