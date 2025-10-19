@@ -17,6 +17,13 @@ from .entanglement_firewall import (
     FirewallViolationType,
     EntanglementEdge
 )
+from .capability_system import (
+    CapabilitySystem,
+    CapabilityToken,
+    CapabilityType,
+    DEFAULT_CAPABILITIES,
+    has_caps
+)
 
 __all__ = [
     "TenantManager",
@@ -39,4 +46,9 @@ __all__ = [
     "EntanglementFirewallViolation",
     "FirewallViolationType",
     "EntanglementEdge",
+    "CapabilitySystem",
+    "CapabilityToken",
+    "CapabilityType",
+    "DEFAULT_CAPABILITIES",
+    "has_caps",
 ]
