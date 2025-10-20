@@ -9,10 +9,12 @@ core of Shor's algorithm.
 Full Shor's algorithm:
 1. Classical: Pick random a < N
 2. Classical: Check if gcd(a, N) > 1
-3. Quantum: Find period r of f(x) = a^x mod N
+3. Quantum: Find period r of f(x) = a^x mod N  ← Uses ASM
 4. Classical: Use r to find factors
 
-This implementation focuses on step 3 (quantum period finding) for small N.
+Architecture:
+- Quantum part (period finding): shors_period_finding.qvm.asm
+- Classical parts (GCD, factor extraction): Python
 
 Example: Factor N=15 using a=7
 - f(x) = 7^x mod 15 has period r=4
@@ -32,6 +34,12 @@ sys.path.insert(0, str(ROOT))
 
 from runtime.client.qsyscall_client import QSyscallClient
 
+# Import ASM runner
+try:
+    from asm_runner import assemble_file
+except ImportError:
+    from examples.asm_runner import assemble_file
+
 
 def gcd(a: int, b: int) -> int:
     """Compute greatest common divisor."""
@@ -40,109 +48,11 @@ def gcd(a: int, b: int) -> int:
     return a
 
 
-def create_qft_circuit(n_qubits: int, qubits: list, prev_deps: list) -> tuple:
-    """
-    Create Quantum Fourier Transform circuit.
-    
-    Args:
-        n_qubits: Number of qubits
-        qubits: List of qubit IDs
-        prev_deps: Previous dependencies
-    
-    Returns:
-        (nodes, last_node_ids) tuple
-    """
-    nodes = []
-    
-    for i in range(n_qubits):
-        # Hadamard on qubit i
-        h_id = f"qft_h_{i}"
-        nodes.append({
-            "id": h_id,
-            "op": "H",
-            "qubits": [qubits[i]],
-            "deps": prev_deps if i == 0 else [prev_node]
-        })
-        
-        # Controlled rotations
-        prev_node = h_id
-        for j in range(i + 1, n_qubits):
-            angle = math.pi / (2 ** (j - i))
-            cr_id = f"qft_cr_{i}_{j}"
-            
-            # Controlled-RZ implemented as: RZ(θ/2) on target, CNOT, RZ(-θ/2) on target, CNOT
-            nodes.append({
-                "id": f"{cr_id}_rz1",
-                "op": "RZ",
-                "qubits": [qubits[j]],
-                "params": {"theta": angle / 2},
-                "deps": [prev_node]
-            })
-            
-            nodes.append({
-                "id": f"{cr_id}_cnot1",
-                "op": "CNOT",
-                "qubits": [qubits[i], qubits[j]],
-                "deps": [f"{cr_id}_rz1"]
-            })
-            
-            nodes.append({
-                "id": f"{cr_id}_rz2",
-                "op": "RZ",
-                "qubits": [qubits[j]],
-                "params": {"theta": -angle / 2},
-                "deps": [f"{cr_id}_cnot1"]
-            })
-            
-            nodes.append({
-                "id": f"{cr_id}_cnot2",
-                "op": "CNOT",
-                "qubits": [qubits[i], qubits[j]],
-                "deps": [f"{cr_id}_rz2"]
-            })
-            
-            prev_node = f"{cr_id}_cnot2"
-    
-    # Swap qubits to reverse order
-    swap_nodes = []
-    for i in range(n_qubits // 2):
-        j = n_qubits - 1 - i
-        swap_id = f"qft_swap_{i}_{j}"
-        
-        # SWAP using 3 CNOTs
-        swap_nodes.append({
-            "id": f"{swap_id}_cnot1",
-            "op": "CNOT",
-            "qubits": [qubits[i], qubits[j]],
-            "deps": [prev_node] if i == 0 else [f"qft_swap_{i-1}_{n_qubits-i}_cnot3"]
-        })
-        
-        swap_nodes.append({
-            "id": f"{swap_id}_cnot2",
-            "op": "CNOT",
-            "qubits": [qubits[j], qubits[i]],
-            "deps": [f"{swap_id}_cnot1"]
-        })
-        
-        swap_nodes.append({
-            "id": f"{swap_id}_cnot3",
-            "op": "CNOT",
-            "qubits": [qubits[i], qubits[j]],
-            "deps": [f"{swap_id}_cnot2"]
-        })
-    
-    nodes.extend(swap_nodes)
-    
-    last_ids = [f"qft_swap_{n_qubits//2-1}_{n_qubits//2}_cnot3"] if swap_nodes else [prev_node]
-    
-    return nodes, last_ids
-
-
 def create_period_finding_circuit(N: int = 15, a: int = 7, n_count_qubits: int = 3) -> dict:
     """
-    Create simplified period-finding circuit for Shor's algorithm.
+    Create quantum period-finding circuit using ASM.
     
-    This is a pedagogical version that demonstrates the key quantum subroutine.
+    This is the quantum core of Shor's algorithm.
     
     Args:
         N: Number to factor
@@ -152,101 +62,12 @@ def create_period_finding_circuit(N: int = 15, a: int = 7, n_count_qubits: int =
     Returns:
         QVM graph dictionary
     """
-    count_qubits = [f"count_{i}" for i in range(n_count_qubits)]
-    work_qubits = ["work_0"]  # Simplified: using 1 work qubit
-    
-    all_qubits = count_qubits + work_qubits
-    
-    nodes = [
-        # Allocate qubits
-        {
-            "id": "alloc",
-            "op": "ALLOC_LQ",
-            "outputs": all_qubits,
-            "profile": "logical:surface_code(d=3)"
-        },
-        
-        # Initialize counting qubits in superposition
-        {
-            "id": "h_count_0",
-            "op": "H",
-            "qubits": [count_qubits[0]],
-            "deps": ["alloc"]
-        }
-    ]
-    
-    prev_h = "h_count_0"
-    for i in range(1, n_count_qubits):
-        h_id = f"h_count_{i}"
-        nodes.append({
-            "id": h_id,
-            "op": "H",
-            "qubits": [count_qubits[i]],
-            "deps": ["alloc"]
-        })
-        prev_h = h_id
-    
-    # Initialize work qubit to |1⟩ (simplified)
-    nodes.append({
-        "id": "x_work",
-        "op": "X",
-        "qubits": [work_qubits[0]],
-        "deps": ["alloc"]
+    # Use ASM file for quantum circuit
+    return assemble_file("shors_period_finding.qvm.asm", {
+        "n_count_qubits": n_count_qubits,
+        "N": N,
+        "a": a
     })
-    
-    # Controlled modular exponentiation (simplified)
-    # In full Shor's, this would be controlled-U^(2^j) operations
-    # Here we use a simplified version for demonstration
-    
-    prev_node = [prev_h, "x_work"]
-    
-    for i in range(n_count_qubits):
-        # Simplified controlled operation
-        # In reality, this would be controlled-a^(2^i) mod N
-        ctrl_id = f"ctrl_exp_{i}"
-        
-        nodes.append({
-            "id": ctrl_id,
-            "op": "CNOT",
-            "qubits": [count_qubits[i], work_qubits[0]],
-            "deps": prev_node
-        })
-        
-        prev_node = [ctrl_id]
-    
-    # Apply inverse QFT to counting qubits
-    qft_nodes, qft_last = create_qft_circuit(n_count_qubits, count_qubits, prev_node)
-    nodes.extend(qft_nodes)
-    
-    # Measure counting qubits
-    measure_deps = qft_last
-    for i in range(n_count_qubits):
-        nodes.append({
-            "id": f"measure_count_{i}",
-            "op": "MEASURE_Z",
-            "qubits": [count_qubits[i]],
-            "outputs": [f"m{i}"],
-            "deps": measure_deps
-        })
-    
-    # Free qubits
-    measure_ids = [f"measure_count_{i}" for i in range(n_count_qubits)]
-    nodes.append({
-        "id": "free",
-        "op": "FREE_LQ",
-        "qubits": all_qubits,
-        "deps": measure_ids
-    })
-    
-    return {
-        "version": "0.1",
-        "metadata": {
-            "name": f"shors_period_finding_N{N}_a{a}",
-            "description": f"Period finding for Shor's algorithm (N={N}, a={a})"
-        },
-        "nodes": nodes,
-        "edges": []
-    }
 
 
 def classical_period_finding(a: int, N: int) -> int:
