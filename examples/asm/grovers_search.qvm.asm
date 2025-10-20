@@ -1,12 +1,16 @@
 ; Grover's Search Algorithm
 ; Searches for a marked item in an unsorted database
 ;
-; Parameters (set via Python):
-;   target_state - list like ["1", "1"] for target |11⟩
-;   n_iterations - number of Grover iterations
+; Parameters:
+;   target_state - Binary string for target state (e.g., "11" for |11⟩)
+;   n_iterations - Number of Grover iterations (default 1 for 2 qubits)
 
 .version 0.1
 .caps CAP_ALLOC CAP_COMPUTE CAP_MEASURE
+
+; Parameters with defaults
+.param target_state = "11"
+.param n_iterations = 1
 
 ; Grover's search for 2-qubit target
 alloc: ALLOC_LQ n=2, profile="logical:Surface(d=3)" -> q0, q1
@@ -19,10 +23,10 @@ h1: APPLY_H q1
 .for iter in 0..n_iterations-1
     ; === Oracle: Mark target state ===
     ; Flip bits that should be 0 in target
-    .if target_state[0] == "0"
+    .if target_state[0] == '0'
         oracle_x0_{iter}: APPLY_X q0
     .endif
-    .if target_state[1] == "0"
+    .if target_state[1] == '0'
         oracle_x1_{iter}: APPLY_X q1
     .endif
     
@@ -32,10 +36,10 @@ h1: APPLY_H q1
     oracle_h2_{iter}: APPLY_H q1
     
     ; Flip back
-    .if target_state[1] == "0"
+    .if target_state[1] == '0'
         oracle_unx1_{iter}: APPLY_X q1
     .endif
-    .if target_state[0] == "0"
+    .if target_state[0] == '0'
         oracle_unx0_{iter}: APPLY_X q0
     .endif
     

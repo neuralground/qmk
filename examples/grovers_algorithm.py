@@ -23,7 +23,12 @@ ROOT = Path(__file__).parent.parent
 sys.path.insert(0, str(ROOT))
 
 from runtime.client.qsyscall_client import QSyscallClient
-from qvm.tools.qvm_asm import assemble
+
+# Import ASM runner
+try:
+    from asm_runner import assemble_file
+except ImportError:
+    from examples.asm_runner import assemble_file
 
 
 def create_grovers_circuit(target_state: str = "11", n_iterations: int = 1) -> dict:
@@ -40,68 +45,11 @@ def create_grovers_circuit(target_state: str = "11", n_iterations: int = 1) -> d
     if len(target_state) != 2 or not all(c in '01' for c in target_state):
         raise ValueError("target_state must be 2-bit binary string")
     
-    # Build ASM program
-    asm_lines = [
-        ".version 0.1",
-        ".caps CAP_ALLOC CAP_COMPUTE CAP_MEASURE",
-        "",
-        f"; Grover's Search for |{target_state}\u27e9",
-        "; Algorithm: Superposition \u2192 Grover Iterations \u2192 Measure",
-        "",
-        "alloc: ALLOC_LQ n=2, profile=\"logical:Surface(d=3)\" -> q0, q1",
-        "",
-        "; Initialize in equal superposition",
-        "h0_init: APPLY_H q0",
-        "h1_init: APPLY_H q1",
-    ]
-    
-    # Generate Grover iterations
-    for iteration in range(n_iterations):
-        asm_lines.append(f"")
-        asm_lines.append(f"; === Grover Iteration {iteration+1} ===")
-        
-        # Oracle: Mark target state
-        asm_lines.append(f"; Oracle: Mark |{target_state}\u27e9")
-        
-        # Flip bits that should be 0
-        if target_state[0] == '0':
-            asm_lines.append(f"i{iteration}_ox0: APPLY_X q0")
-        if target_state[1] == '0':
-            asm_lines.append(f"i{iteration}_ox1: APPLY_X q1")
-        
-        # Controlled-Z (mark the state)
-        asm_lines.append(f"i{iteration}_oh: APPLY_H q1")
-        asm_lines.append(f"i{iteration}_ocnot: APPLY_CNOT q0, q1")
-        asm_lines.append(f"i{iteration}_oh2: APPLY_H q1")
-        
-        # Flip back
-        if target_state[1] == '0':
-            asm_lines.append(f"i{iteration}_oux1: APPLY_X q1")
-        if target_state[0] == '0':
-            asm_lines.append(f"i{iteration}_oux0: APPLY_X q0")
-        
-        # Diffusion operator (inversion about average)
-        asm_lines.append(f"; Diffusion: Invert about average")
-        asm_lines.append(f"i{iteration}_dh0: APPLY_H q0")
-        asm_lines.append(f"i{iteration}_dh1: APPLY_H q1")
-        asm_lines.append(f"i{iteration}_dx0: APPLY_X q0")
-        asm_lines.append(f"i{iteration}_dx1: APPLY_X q1")
-        asm_lines.append(f"i{iteration}_dh_cz: APPLY_H q1")
-        asm_lines.append(f"i{iteration}_dcnot: APPLY_CNOT q0, q1")
-        asm_lines.append(f"i{iteration}_dh_cz2: APPLY_H q1")
-        asm_lines.append(f"i{iteration}_dx0_2: APPLY_X q0")
-        asm_lines.append(f"i{iteration}_dx1_2: APPLY_X q1")
-        asm_lines.append(f"i{iteration}_dh0_2: APPLY_H q0")
-        asm_lines.append(f"i{iteration}_dh1_2: APPLY_H q1")
-    
-    # Measurements
-    asm_lines.append("")
-    asm_lines.append("; Measure to find target")
-    asm_lines.append("m0: MEASURE_Z q0 -> m0")
-    asm_lines.append("m1: MEASURE_Z q1 -> m1")
-    
-    asm = "\\n".join(asm_lines) + "\\n"
-    return assemble(asm)
+    # Use ASM file with .param override
+    return assemble_file("grovers_search.qvm.asm", {
+        "target_state": target_state,
+        "n_iterations": n_iterations
+    })
 
 
 
