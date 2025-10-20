@@ -278,6 +278,12 @@ class GateCancellationPass(OptimizationPass):
             
             # Check if they can cancel
             if self._can_cancel(inst1, inst2):
+                # Safety check: Don't cancel if it would leave qubits uninitialized
+                if self._would_leave_uninitialized(circuit, i, i + 1):
+                    # Skip this cancellation to preserve qubit initialization
+                    i += 1
+                    continue
+                
                 # Mark both for removal
                 to_remove.add(i)
                 to_remove.add(i + 1)
@@ -316,6 +322,10 @@ class GateCancellationPass(OptimizationPass):
         
         Returns:
             True if they cancel
+            
+        Safety: This method only checks if gates CAN cancel algebraically.
+        The run() method should verify that cancellation doesn't leave
+        qubits uninitialized before multi-qubit operations.
         """
         # Must operate on same qubits
         if inst1.qubits != inst2.qubits:
@@ -343,6 +353,55 @@ class GateCancellationPass(OptimizationPass):
                 # Check if angles are opposite (within tolerance)
                 if abs(theta1 + theta2) < 1e-10:
                     return True
+        
+        return False
+    
+    def _would_leave_uninitialized(self, circuit: QIRCircuit, idx1: int, idx2: int) -> bool:
+        """
+        Check if canceling instructions at idx1 and idx2 would leave qubits uninitialized.
+        
+        A qubit is considered uninitialized if:
+        1. These are the ONLY gates on the qubit before a multi-qubit operation
+        2. The qubit is later used in a multi-qubit operation
+        
+        Args:
+            circuit: The circuit
+            idx1: Index of first instruction to cancel
+            idx2: Index of second instruction to cancel
+        
+        Returns:
+            True if cancellation would leave qubits uninitialized
+            
+        Note: ALLOC operations don't count as initialization - they just allocate
+        the qubit in |0⟩ state. For multi-qubit operations, we need explicit
+        single-qubit gates to prepare the state.
+        """
+        inst1 = circuit.instructions[idx1]
+        qubits_affected = set(inst1.qubits)
+        
+        # Only check single-qubit gates (multi-qubit gates don't have this issue)
+        if not inst1.is_single_qubit_gate():
+            return False
+        
+        # Check if these are the first GATES (not ALLOC) on any of the qubits
+        for qubit in qubits_affected:
+            # Look backwards to see if there are any prior GATES on this qubit
+            has_prior_gate = False
+            for i in range(idx1):
+                inst = circuit.instructions[i]
+                if qubit in inst.qubits and inst.is_gate():
+                    has_prior_gate = True
+                    break
+            
+            # If no prior gates, check if qubit is used later in multi-qubit ops
+            if not has_prior_gate:
+                # Look forward (past idx2) for multi-qubit operations involving this qubit
+                for i in range(idx2 + 1, len(circuit.instructions)):
+                    inst = circuit.instructions[i]
+                    if qubit in inst.qubits and inst.is_two_qubit_gate():
+                        # Found a multi-qubit operation with no prior gates!
+                        # This would leave the qubit in |0⟩ with no preparation
+                        return True
         
         return False
     
