@@ -40,93 +40,72 @@ def create_vqe_ansatz(theta1: float, theta2: float, theta3: float) -> dict:
             "name": "vqe_ansatz",
             "description": f"VQE ansatz with θ=({theta1:.3f}, {theta2:.3f}, {theta3:.3f})"
         },
-        "nodes": [
-            # Allocate qubits
-            {
-                "id": "alloc",
-                "op": "ALLOC_LQ",
-                "outputs": ["q0", "q1"],
-                "profile": "logical:surface_code(d=3)"
-            },
-            # Initial Hadamards
-            {
-                "id": "h0",
-                "op": "H",
-                "qubits": ["q0"],
-                "deps": ["alloc"]
-            },
-            {
-                "id": "h1",
-                "op": "H",
-                "qubits": ["q1"],
-                "deps": ["alloc"]
-            },
-            # First rotation layer
-            {
-                "id": "rz0",
-                "op": "RZ",
-                "qubits": ["q0"],
-                "params": {"theta": theta1},
-                "deps": ["h0"]
-            },
-            {
-                "id": "rz1",
-                "op": "RZ",
-                "qubits": ["q1"],
-                "params": {"theta": theta2},
-                "deps": ["h1"]
-            },
-            # Entangling layer (CNOT)
-            {
-                "id": "cnot",
-                "op": "CNOT",
-                "qubits": ["q0", "q1"],
-                "deps": ["rz0", "rz1"]
-            },
-            # Final rotation
-            {
-                "id": "rz2",
-                "op": "RZ",
-                "qubits": ["q0"],
-                "params": {"theta": theta3},
-                "deps": ["cnot"]
-            },
-            # Measurements
-            {
-                "id": "m0",
-                "op": "MEASURE_Z",
-                "qubits": ["q0"],
-                "outputs": ["m0"],
-                "deps": ["rz2"]
-            },
-            {
-                "id": "m1",
-                "op": "MEASURE_Z",
-                "qubits": ["q1"],
-                "outputs": ["m1"],
-                "deps": ["cnot"]
-            },
-            # Free qubits
-            {
-                "id": "free",
-                "op": "FREE_LQ",
-                "qubits": ["q0", "q1"],
-                "deps": ["m0", "m1"]
-            }
-        ],
-        "edges": [
-            {"from": "alloc", "to": "h0"},
-            {"from": "alloc", "to": "h1"},
-            {"from": "h0", "to": "rz0"},
-            {"from": "h1", "to": "rz1"},
-            {"from": "rz0", "to": "cnot"},
-            {"from": "rz1", "to": "cnot"},
-            {"from": "cnot", "to": "rz2"},
-            {"from": "rz2", "to": "m0"},
-            {"from": "cnot", "to": "m1"},
-            {"from": "m0", "to": "free"},
-            {"from": "m1", "to": "free"}
-        ]
+        "program": {
+            "nodes": [
+                # Allocate qubits
+                {
+                    "id": "alloc",
+                    "op": "ALLOC_LQ",
+                    "vqs": ["q0", "q1"],
+                    "args": {"n": 2, "profile": "logical:Surface(d=3)"}
+                },
+                # Initial Hadamards
+                {
+                    "id": "h0",
+                    "op": "APPLY_H",
+                    "vqs": ["q0"]
+                },
+                {
+                    "id": "h1",
+                    "op": "APPLY_H",
+                    "vqs": ["q1"]
+                },
+                # First rotation layer
+                {
+                    "id": "rz0",
+                    "op": "APPLY_RZ",
+                    "vqs": ["q0"],
+                    "args": {"theta": theta1}
+                },
+                {
+                    "id": "rz1",
+                    "op": "APPLY_RZ",
+                    "vqs": ["q1"],
+                    "args": {"theta": theta2}
+                },
+                # Entangling layer (CNOT)
+                {
+                    "id": "cnot",
+                    "op": "APPLY_CNOT",
+                    "vqs": ["q0", "q1"]
+                },
+                # Final rotation
+                {
+                    "id": "rz2",
+                    "op": "APPLY_RZ",
+                    "vqs": ["q0"],
+                    "args": {"theta": theta3}
+                },
+                # Measurements (consume qubits via linearity)
+                {
+                    "id": "m0",
+                    "op": "MEASURE_Z",
+                    "vqs": ["q0"],
+                    "produces": ["m0"]
+                },
+                {
+                    "id": "m1",
+                    "op": "MEASURE_Z",
+                    "vqs": ["q1"],
+                    "produces": ["m1"]
+                }
+                # No FREE_LQ needed - measurements consume qubits
+            ]
+        },
+        "resources": {
+            "vqs": ["q0", "q1"],
+            "events": ["m0", "m1"]
+        }
     }
 
 
@@ -178,8 +157,13 @@ def main():
     
     # Negotiate capabilities
     print("Negotiating capabilities...")
-    caps_result = client.negotiate_capabilities(["CAP_ALLOC"])
-    print(f"Session ID: {caps_result['session_id']}\n")
+    caps_result = client.negotiate_capabilities([
+        "CAP_ALLOC",
+        "CAP_COMPUTE",  # Required for quantum operations
+        "CAP_MEASURE"   # Required for measurements
+    ])
+    print(f"Session ID: {caps_result['session_id']}")
+    print(f"Granted: {caps_result.get('granted', [])}\n")
     
     # Parameter sweep (simplified VQE optimization)
     import math
@@ -209,12 +193,15 @@ def main():
         best_params, best_energy = min(energies, key=lambda x: x[1])
         print(f"\n✅ Best parameters: θ=({best_params[0]:.3f}, {best_params[1]:.3f}, {best_params[2]:.3f})")
         print(f"   Best energy: {best_energy:.3f}")
-    
-    # Get final telemetry
-    print("\n=== Telemetry ===")
-    telemetry = client.get_telemetry()
-    print(f"Total jobs run: {len(parameter_sets)}")
-    print(f"Physical qubits used: {telemetry['resource_usage']['physical_qubits_used']}")
+        
+        # Get final telemetry
+        print("\n=== Telemetry ===")
+        telemetry = client.get_telemetry()
+        print(f"Successful jobs: {len(energies)}/{len(parameter_sets)}")
+        print(f"Physical qubits used: {telemetry['resource_usage']['physical_qubits_used']}")
+    else:
+        print("\n❌ All jobs failed - no results to show")
+        print("   Check the error messages above for details")
 
 
 if __name__ == "__main__":
