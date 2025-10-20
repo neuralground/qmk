@@ -22,7 +22,12 @@ ROOT = Path(__file__).parent.parent
 sys.path.insert(0, str(ROOT))
 
 from runtime.client.qsyscall_client import QSyscallClient
-from qvm.tools.qvm_asm import assemble
+
+# Import ASM runner
+try:
+    from asm_runner import assemble_file
+except ImportError:
+    from examples.asm_runner import assemble_file
 
 
 def create_deutsch_jozsa_circuit(oracle_type: str = "constant_0") -> dict:
@@ -40,51 +45,8 @@ def create_deutsch_jozsa_circuit(oracle_type: str = "constant_0") -> dict:
     Returns:
         QVM graph dictionary
     """
-    # Build oracle section based on type
-    if oracle_type == "constant_0":
-        oracle_asm = "; Oracle: constant_0 (identity - do nothing)"
-    elif oracle_type == "constant_1":
-        oracle_asm = "; Oracle: constant_1 (flip output)\noracle: APPLY_X y"
-    elif oracle_type == "balanced_x0":
-        oracle_asm = "; Oracle: balanced_x0 (f = x0)\noracle: APPLY_CNOT x0, y"
-    elif oracle_type == "balanced_x1":
-        oracle_asm = "; Oracle: balanced_x1 (f = x1)\noracle: APPLY_CNOT x1, y"
-    elif oracle_type == "balanced_xor":
-        oracle_asm = "; Oracle: balanced_xor (f = x0 ⊕ x1)\noracle0: APPLY_CNOT x0, y\noracle1: APPLY_CNOT x1, y"
-    else:
-        raise ValueError(f"Unknown oracle type: {oracle_type}")
-    
-    # Build complete circuit
-    asm = f"""
-.version 0.1
-.caps CAP_ALLOC CAP_COMPUTE CAP_MEASURE
-
-; Deutsch-Jozsa Algorithm with {oracle_type} oracle
-; Circuit: x0,x1 in superposition → Oracle → Hadamard → Measure
-; Result: |00⟩ = constant, any |1⟩ = balanced
-
-alloc: ALLOC_LQ n=3, profile="logical:Surface(d=3)" -> x0, x1, y
-
-; Initialize output qubit to |1⟩ (creates |−⟩ after H)
-x_init: APPLY_X y
-
-; Apply Hadamard to all qubits (create superposition)
-h_x0: APPLY_H x0
-h_x1: APPLY_H x1
-h_y: APPLY_H y
-
-{oracle_asm}
-
-; Apply Hadamard to input qubits (interference)
-h_x0_final: APPLY_H x0
-h_x1_final: APPLY_H x1
-
-; Measure input qubits (measurements consume qubits)
-m0: MEASURE_Z x0 -> m0
-m1: MEASURE_Z x1 -> m1
-m_y: MEASURE_Z y -> m_y
-"""
-    return assemble(asm)
+    # Use ASM file with .param override
+    return assemble_file("deutsch_jozsa.qvm.asm", {"oracle_type": oracle_type})
 
 
 def run_deutsch_jozsa(client: QSyscallClient, oracle_type: str, shots: int = 10):
