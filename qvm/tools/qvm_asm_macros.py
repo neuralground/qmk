@@ -53,7 +53,12 @@ class MacroPreprocessor:
         self.variables = {}
         self.params = params or {}  # External parameters
         self.macros = {}
-        self.include_paths = [Path("."), Path(__file__).parent.parent / "asm"]
+        # Include paths: current dir, examples/asm, qvm/lib
+        self.include_paths = [
+            Path("."),
+            Path(__file__).parent.parent / "asm",
+            Path(__file__).parent.parent.parent / "qvm" / "lib"
+        ]
         
     def preprocess(self, assembly: str, filename: Optional[str] = None) -> str:
         """

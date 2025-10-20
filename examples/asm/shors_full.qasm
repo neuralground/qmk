@@ -86,7 +86,12 @@ modexp_1_op2: APPLY_CNOT count_1, work_2
 ; Apply QFT to counting qubits to extract period information
 ; The QFT converts the phase information into measurable amplitudes
 ;
-; Full QFT with controlled phase rotations
+; Note: Could use library QFT with:
+; .set qubit_prefix = "count"
+; .set n_qubits = n_count_qubits
+; .include "qvm/lib/qft.qasm"
+;
+; For now, inline implementation:
 
 .set qubit_prefix = "count"
 .set n_qubits = n_count_qubits
