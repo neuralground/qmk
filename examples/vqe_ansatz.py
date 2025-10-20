@@ -17,7 +17,12 @@ ROOT = Path(__file__).parent.parent
 sys.path.insert(0, str(ROOT))
 
 from runtime.client.qsyscall_client import QSyscallClient
-from qvm.tools.qvm_asm import assemble
+
+# Import ASM runner from same directory
+try:
+    from asm_runner import assemble_file
+except ImportError:
+    from examples.asm_runner import assemble_file
 
 
 def create_vqe_ansatz(theta1: float, theta2: float, theta3: float) -> dict:
@@ -35,27 +40,11 @@ def create_vqe_ansatz(theta1: float, theta2: float, theta3: float) -> dict:
     Returns:
         QVM graph dictionary
     """
-    # Use QVM assembly for cleaner, more maintainable code
-    asm = f"""
-.version 0.1
-.caps CAP_ALLOC CAP_COMPUTE CAP_MEASURE
-
-; VQE ansatz with θ=({theta1:.3f}, {theta2:.3f}, {theta3:.3f})
-; Circuit: q0: ─H─Rz(θ1)─●─Rz(θ3)─M
-;                        │
-;         q1: ─H─Rz(θ2)─X────────M
-
-alloc: ALLOC_LQ n=2, profile="logical:Surface(d=3)" -> q0, q1 [CAP_ALLOC]
-h0: APPLY_H q0
-h1: APPLY_H q1
-rz0: APPLY_RZ q0, theta={theta1}
-rz1: APPLY_RZ q1, theta={theta2}
-cnot: APPLY_CNOT q0, q1
-rz2: APPLY_RZ q0, theta={theta3}
-m0: MEASURE_Z q0 -> m0
-m1: MEASURE_Z q1 -> m1
-"""
-    return assemble(asm)
+    return assemble_file("vqe_ansatz.qvm.asm", {
+        "theta1": theta1,
+        "theta2": theta2,
+        "theta3": theta3
+    })
 
 
 def run_vqe_iteration(client: QSyscallClient, params: tuple, iteration: int):

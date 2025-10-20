@@ -17,7 +17,12 @@ ROOT = Path(__file__).parent.parent
 sys.path.insert(0, str(ROOT))
 
 from runtime.client.qsyscall_client import QSyscallClient
-from qvm.tools.qvm_asm import assemble
+
+# Import ASM runner from same directory
+try:
+    from asm_runner import assemble_file
+except ImportError:
+    from examples.asm_runner import assemble_file
 
 
 def create_ghz_state(n_qubits: int = 4) -> dict:
@@ -39,30 +44,7 @@ def create_ghz_state(n_qubits: int = 4) -> dict:
     Returns:
         QVM graph dictionary
     """
-    # Generate qubit list
-    qubit_list = ", ".join([f"q{i}" for i in range(n_qubits)])
-    
-    # Build ASM program
-    asm_lines = [
-        ".version 0.1",
-        ".caps CAP_ALLOC CAP_COMPUTE CAP_MEASURE",
-        "",
-        f"; {n_qubits}-qubit GHZ state: |GHZ⟩ = (|00...0⟩ + |11...1⟩)/√2",
-        "",
-        f"alloc: ALLOC_LQ n={n_qubits}, profile=\"logical:Surface(d=3)\" -> {qubit_list}",
-        "h0: APPLY_H q0",
-    ]
-    
-    # CNOTs to create entanglement
-    for i in range(1, n_qubits):
-        asm_lines.append(f"cnot{i}: APPLY_CNOT q0, q{i}")
-    
-    # Measurements
-    for i in range(n_qubits):
-        asm_lines.append(f"m{i}: MEASURE_Z q{i} -> m{i}")
-    
-    asm = "\n".join(asm_lines) + "\n"
-    return assemble(asm)
+    return assemble_file("ghz_state.qvm.asm", {"n_qubits": n_qubits})
 
 
 def create_w_state(n_qubits: int = 3) -> dict:
@@ -77,34 +59,7 @@ def create_w_state(n_qubits: int = 3) -> dict:
     Returns:
         QVM graph dictionary
     """
-    # Generate qubit list
-    qubit_list = ", ".join([f"q{i}" for i in range(n_qubits)])
-    
-    # Build ASM program
-    asm_lines = [
-        ".version 0.1",
-        ".caps CAP_ALLOC CAP_COMPUTE CAP_MEASURE",
-        "",
-        f"; {n_qubits}-qubit W state: |W⟩ = (|100...0⟩ + |010...0⟩ + ... + |00...01⟩)/√n",
-        "",
-        f"alloc: ALLOC_LQ n={n_qubits}, profile=\"logical:Surface(d=3)\" -> {qubit_list}",
-        "x0: APPLY_X q0  ; Start with |1⟩",
-    ]
-    
-    # Create W state using controlled rotations
-    for i in range(n_qubits - 1):
-        # Rotation to distribute amplitude
-        angle = math.acos(math.sqrt(1.0 / (n_qubits - i)))
-        asm_lines.append(f"ry{i}: APPLY_RY q{i}, theta={angle}")
-        # CNOT to next qubit
-        asm_lines.append(f"cnot{i}: APPLY_CNOT q{i}, q{i+1}")
-    
-    # Measurements
-    for i in range(n_qubits):
-        asm_lines.append(f"m{i}: MEASURE_Z q{i} -> m{i}")
-    
-    asm = "\n".join(asm_lines) + "\n"
-    return assemble(asm)
+    return assemble_file("w_state.qvm.asm", {"n_qubits": n_qubits})
 
 
 def analyze_measurements(events: dict, n_qubits: int, state_type: str):
