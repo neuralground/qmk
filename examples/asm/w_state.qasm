@@ -3,12 +3,17 @@
 ;
 ; Parameters (set via Python):
 ;   n_qubits - number of qubits
+;   angles - list of rotation angles
 
 .version 0.1
 .caps CAP_ALLOC CAP_COMPUTE CAP_MEASURE
 
+; Parameters
+.param n_qubits = 3
+.param qubit_outputs = "q0, q1, q2"
+.param angles = [1.91, 1.57]
+
 ; Allocate qubits
-; Note: qubit_outputs should be set by Python as comma-separated string
 alloc: ALLOC_LQ n={n_qubits}, profile="logical:Surface(d=3)" -> {qubit_outputs}
 
 ; Create W state (simplified construction)
