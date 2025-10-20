@@ -53,11 +53,13 @@ Savings: 2 gates removed
 
 ---
 
-### 2. Gate Commutation Pass
+### 2. [Gate Commutation Pass](passes/02_gate_commutation.md) 📖
 
 **Purpose**: Reorder gates to enable other optimizations
 
 **Research**: Maslov et al. (2005), Shende et al. (2006)
+
+**[→ Full Documentation with Examples](passes/02_gate_commutation.md)**
 
 **Techniques**:
 - Commute gates that operate on disjoint qubits
@@ -71,11 +73,13 @@ Savings: 2 gates removed
 
 ---
 
-### 3. Gate Fusion Pass
+### 3. [Gate Fusion Pass](passes/03_gate_fusion.md) 📖
 
 **Purpose**: Merge adjacent single-qubit gates
 
 **Research**: Shende et al. (2006)
+
+**[→ Full Documentation with Examples](passes/03_gate_fusion.md)**
 
 **Techniques**:
 - Merge rotation gates: RZ(α)·RZ(β) = RZ(α+β)
@@ -89,11 +93,13 @@ Savings: 2 gates removed
 
 ---
 
-### 4. Dead Code Elimination Pass
+### 4. [Dead Code Elimination Pass](passes/04_dead_code_elimination.md) 📖
 
 **Purpose**: Remove gates that don't affect output
 
 **Research**: Standard compiler optimization
+
+**[→ Full Documentation with Examples](passes/04_dead_code_elimination.md)**
 
 **Techniques**:
 - Remove gates on unused qubits
@@ -107,11 +113,13 @@ Savings: 2 gates removed
 
 ---
 
-### 5. Constant Propagation Pass
+### 5. [Constant Propagation Pass](passes/05_constant_propagation.md) 📖
 
 **Purpose**: Simplify gates with known constant inputs
 
 **Research**: Standard compiler optimization
+
+**[→ Full Documentation with Examples](passes/05_constant_propagation.md)**
 
 **Techniques**:
 - Propagate known qubit states
@@ -152,11 +160,13 @@ Savings: 6 gates → 3 gates (50% reduction)
 
 ---
 
-### 7. Measurement Deferral Pass
+### 7. [Measurement Deferral Pass](passes/07_measurement_deferral.md) 📖
 
 **Purpose**: Move measurements to end of circuit
 
 **Research**: Nielsen & Chuang (2010), Chapter 4
+
+**[→ Full Documentation with Examples](passes/07_measurement_deferral.md)**
 
 **Techniques**:
 - Defer measurements when possible
@@ -198,11 +208,13 @@ Savings: 67% T-count reduction
 
 ---
 
-### 9. Magic State Optimization Pass
+### 9. [Magic State Optimization Pass](passes/09_magic_state_optimization.md) 📖
 
 **Purpose**: Optimize magic state usage
 
 **Research**: Bravyi & Kitaev (2005), Litinski (2019)
+
+**[→ Full Documentation](passes/09_magic_state_optimization.md)**
 
 **Techniques**:
 - Magic state injection optimization
@@ -215,11 +227,13 @@ Savings: 67% T-count reduction
 
 ---
 
-### 10. Gate Teleportation Pass
+### 10. [Gate Teleportation Pass](passes/10_gate_teleportation.md) 📖
 
 **Purpose**: Teleport gates through circuit
 
 **Research**: Gottesman & Chuang (1999)
+
+**[→ Full Documentation](passes/10_gate_teleportation.md)**
 
 **Techniques**:
 - Gate teleportation protocol
@@ -233,11 +247,13 @@ Savings: 67% T-count reduction
 
 ---
 
-### 11. Uncomputation Optimization Pass
+### 11. [Uncomputation Optimization Pass](passes/11_uncomputation_optimization.md) 📖
 
 **Purpose**: Optimize reversible uncomputation
 
 **Research**: Bennett (1973), Aaronson & Grier (2019)
+
+**[→ Full Documentation](passes/11_uncomputation_optimization.md)**
 
 **Techniques**:
 - Identify uncomputation patterns
@@ -250,11 +266,13 @@ Savings: 67% T-count reduction
 
 ---
 
-### 12. Lattice Surgery Optimization Pass
+### 12. [Lattice Surgery Optimization Pass](passes/12_lattice_surgery_optimization.md) 📖
 
 **Purpose**: Optimize surface code lattice surgery
 
 **Research**: Horsman et al. (2012), Litinski (2019)
+
+**[→ Full Documentation](passes/12_lattice_surgery_optimization.md)**
 
 **Techniques**:
 - Lattice surgery protocol optimization
@@ -271,11 +289,13 @@ Savings: 67% T-count reduction
 
 These passes implement cutting-edge research and may not be fully stable.
 
-### 1. ZX-Calculus Optimization Pass (EXPERIMENTAL)
+### 1. [ZX-Calculus Optimization Pass](passes/13_zx_calculus_optimization.md) 📖 (EXPERIMENTAL)
 
 **Purpose**: Optimize using ZX-calculus rewrite rules
 
 **Research**: Kissinger & van de Wetering (2020), Duncan et al. (2020)
+
+**[→ Full Documentation](passes/13_zx_calculus_optimization.md)**
 
 **Techniques**:
 - Convert circuit to ZX-diagram
@@ -299,11 +319,13 @@ These passes implement cutting-edge research and may not be fully stable.
 
 ---
 
-### 2. Phase Polynomial Optimization Pass (EXPERIMENTAL)
+### 2. [Phase Polynomial Optimization Pass](passes/14_phase_polynomial_optimization.md) 📖 (EXPERIMENTAL)
 
 **Purpose**: Optimize via phase polynomial extraction
 
 **Research**: Amy et al. (2014), Nam et al. (2018)
+
+**[→ Full Documentation](passes/14_phase_polynomial_optimization.md)**
 
 **Techniques**:
 - Extract phase polynomial representation
@@ -326,11 +348,13 @@ These passes implement cutting-edge research and may not be fully stable.
 
 ---
 
-### 3. Synthesis-Based Optimization Pass (EXPERIMENTAL)
+### 3. [Synthesis-Based Optimization Pass](passes/15_synthesis_based_optimization.md) 📖 (EXPERIMENTAL)
 
 **Purpose**: Re-synthesize subcircuits optimally
 
 **Research**: Shende et al. (2006), Soeken et al. (2020)
+
+**[→ Full Documentation](passes/15_synthesis_based_optimization.md)**
 
 **Techniques**:
 - Identify independent subcircuits
@@ -352,11 +376,13 @@ These passes implement cutting-edge research and may not be fully stable.
 
 ---
 
-### 4. Pauli Network Synthesis Pass (EXPERIMENTAL)
+### 4. [Pauli Network Synthesis Pass](passes/16_pauli_network_synthesis.md) 📖 (EXPERIMENTAL)
 
 **Purpose**: Optimize Pauli rotation networks
 
 **Research**: Cowtan et al. (2020), Vandaele et al. (2022)
+
+**[→ Full Documentation](passes/16_pauli_network_synthesis.md)**
 
 **Techniques**:
 - Pauli network extraction
@@ -378,11 +404,13 @@ These passes implement cutting-edge research and may not be fully stable.
 
 ---
 
-### 5. Tensor Network Contraction Pass (EXPERIMENTAL)
+### 5. [Tensor Network Contraction Pass](passes/17_tensor_network_contraction.md) 📖 (EXPERIMENTAL)
 
 **Purpose**: Optimize using tensor network contraction
 
 **Research**: Markov & Shi (2008), Gray & Kourtis (2021)
+
+**[→ Full Documentation](passes/17_tensor_network_contraction.md)**
 
 **Techniques**:
 - Convert to tensor network
