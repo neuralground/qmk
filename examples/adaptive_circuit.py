@@ -32,102 +32,80 @@ def create_adaptive_circuit() -> dict:
     """
     return {
         "version": "0.1",
-        "metadata": {
-            "name": "adaptive_qec",
-            "description": "Adaptive circuit with conditional corrections"
-        },
-        "nodes": [
-            # Allocate qubits
-            {
-                "id": "alloc",
-                "op": "ALLOC_LQ",
-                "outputs": ["q0", "q1"],
-                "profile": "logical:surface_code(d=3)"
-            },
-            
-            # Prepare |+⟩ state on q0
-            {
-                "id": "h0",
-                "op": "H",
-                "qubits": ["q0"],
-                "deps": ["alloc"]
-            },
-            
-            # Prepare |+⟩ state on q1 (ancilla)
-            {
-                "id": "h1",
-                "op": "H",
-                "qubits": ["q1"],
-                "deps": ["alloc"]
-            },
-            
-            # Entangle for syndrome extraction
-            {
-                "id": "cnot1",
-                "op": "CNOT",
-                "qubits": ["q0", "q1"],
-                "deps": ["h0", "h1"]
-            },
-            
-            # Syndrome measurement (mid-circuit)
-            {
-                "id": "syndrome",
-                "op": "MEASURE_Z",
-                "qubits": ["q1"],
-                "outputs": ["syndrome_bit"],
-                "deps": ["cnot1"]
-            },
-            
-            # Conditional correction: Apply X to q0 if syndrome_bit == 1
-            {
-                "id": "correction",
-                "op": "X",
-                "qubits": ["q0"],
-                "deps": ["syndrome"],
-                "guard": {
-                    "type": "eq",
-                    "event": "syndrome_bit",
-                    "value": 1
+        "program": {
+            "nodes": [
+                # Allocate qubits
+                {
+                    "id": "alloc",
+                    "op": "ALLOC_LQ",
+                    "args": {
+                        "n": 2,
+                        "profile": "logical:Surface(d=3)"
+                    },
+                    "vqs": ["q0", "q1"]
+                },
+                
+                # Prepare |+⟩ state on q0
+                {
+                    "id": "h0",
+                    "op": "APPLY_H",
+                    "vqs": ["q0"]
+                },
+                
+                # Prepare |+⟩ state on q1 (ancilla)
+                {
+                    "id": "h1",
+                    "op": "APPLY_H",
+                    "vqs": ["q1"]
+                },
+                
+                # Entangle for syndrome extraction
+                {
+                    "id": "cnot1",
+                    "op": "APPLY_CNOT",
+                    "vqs": ["q0", "q1"]
+                },
+                
+                # Syndrome measurement (mid-circuit)
+                {
+                    "id": "syndrome",
+                    "op": "MEASURE_Z",
+                    "vqs": ["q1"],
+                    "produces": ["syndrome_bit"]
+                },
+                
+                # Conditional correction: Apply X to q0 if syndrome_bit == 1
+                {
+                    "id": "correction",
+                    "op": "APPLY_X",
+                    "vqs": ["q0"],
+                    "guard": {
+                        "event": "syndrome_bit",
+                        "equals": 1
+                    }
+                },
+                
+                # Additional operations on q0
+                {
+                    "id": "h2",
+                    "op": "APPLY_H",
+                    "vqs": ["q0"]
+                },
+                
+                # Final measurement
+                {
+                    "id": "final_measure",
+                    "op": "MEASURE_Z",
+                    "vqs": ["q0"],
+                    "produces": ["result"]
                 }
-            },
-            
-            # Additional operations on q0
-            {
-                "id": "h2",
-                "op": "H",
-                "qubits": ["q0"],
-                "deps": ["correction"]
-            },
-            
-            # Final measurement
-            {
-                "id": "final_measure",
-                "op": "MEASURE_Z",
-                "qubits": ["q0"],
-                "outputs": ["result"],
-                "deps": ["h2"]
-            },
-            
-            # Free qubits
-            {
-                "id": "free",
-                "op": "FREE_LQ",
-                "qubits": ["q0", "q1"],
-                "deps": ["final_measure", "syndrome"]
-            }
-        ],
-        "edges": [
-            {"from": "alloc", "to": "h0"},
-            {"from": "alloc", "to": "h1"},
-            {"from": "h0", "to": "cnot1"},
-            {"from": "h1", "to": "cnot1"},
-            {"from": "cnot1", "to": "syndrome"},
-            {"from": "syndrome", "to": "correction"},
-            {"from": "correction", "to": "h2"},
-            {"from": "h2", "to": "final_measure"},
-            {"from": "final_measure", "to": "free"},
-            {"from": "syndrome", "to": "free"}
-        ]
+            ]
+        },
+        "resources": {
+            "vqs": ["q0", "q1"],
+            "chs": [],
+            "events": ["syndrome_bit", "result"]
+        }
     }
 
 
@@ -142,18 +120,18 @@ def create_multi_round_adaptive() -> dict:
     """
     return {
         "version": "0.1",
-        "metadata": {
-            "name": "multi_round_adaptive",
-            "description": "Multiple rounds of syndrome measurement and correction"
-        },
-        "nodes": [
-            # Allocate 3 data qubits + 2 ancilla qubits
-            {
-                "id": "alloc",
-                "op": "ALLOC_LQ",
-                "outputs": ["d0", "d1", "d2", "a0", "a1"],
-                "profile": "logical:surface_code(d=3)"
-            },
+        "program": {
+            "nodes": [
+                # Allocate 3 data qubits + 2 ancilla qubits
+                {
+                    "id": "alloc",
+                    "op": "ALLOC_LQ",
+                    "args": {
+                        "n": 5,
+                        "profile": "logical:Surface(d=3)"
+                    },
+                    "vqs": ["d0", "d1", "d2", "a0", "a1"]
+                },
             
             # Encode logical |0⟩ in repetition code: |000⟩
             # (Already in |000⟩ after allocation)
@@ -162,76 +140,65 @@ def create_multi_round_adaptive() -> dict:
             # Check d0 ⊕ d1
             {
                 "id": "h_a0_r1",
-                "op": "H",
-                "qubits": ["a0"],
-                "deps": ["alloc"]
+                "op": "APPLY_H",
+                "vqs": ["a0"]
             },
             {
                 "id": "cnot_d0_a0_r1",
-                "op": "CNOT",
-                "qubits": ["d0", "a0"],
-                "deps": ["h_a0_r1"]
+                "op": "APPLY_CNOT",
+                "vqs": ["d0", "a0"]
             },
             {
                 "id": "cnot_d1_a0_r1",
-                "op": "CNOT",
-                "qubits": ["d1", "a0"],
-                "deps": ["cnot_d0_a0_r1"]
+                "op": "APPLY_CNOT",
+                "vqs": ["d1", "a0"]
             },
             {
                 "id": "h_a0_r1_end",
-                "op": "H",
-                "qubits": ["a0"],
-                "deps": ["cnot_d1_a0_r1"]
+                "op": "APPLY_H",
+                "vqs": ["a0"]
             },
             {
                 "id": "syndrome_01_r1",
                 "op": "MEASURE_Z",
-                "qubits": ["a0"],
-                "outputs": ["s01_r1"],
-                "deps": ["h_a0_r1_end"]
+                "vqs": ["a0"],
+                "produces": ["s01_r1"]
             },
             
             # Check d1 ⊕ d2
             {
                 "id": "h_a1_r1",
-                "op": "H",
-                "qubits": ["a1"],
-                "deps": ["alloc"]
+                "op": "APPLY_H",
+                "vqs": ["a1"]
             },
             {
                 "id": "cnot_d1_a1_r1",
-                "op": "CNOT",
-                "qubits": ["d1", "a1"],
-                "deps": ["h_a1_r1"]
+                "op": "APPLY_CNOT",
+                "vqs": ["d1", "a1"]
             },
             {
                 "id": "cnot_d2_a1_r1",
-                "op": "CNOT",
-                "qubits": ["d2", "a1"],
-                "deps": ["cnot_d1_a1_r1"]
+                "op": "APPLY_CNOT",
+                "vqs": ["d2", "a1"]
             },
             {
                 "id": "h_a1_r1_end",
-                "op": "H",
-                "qubits": ["a1"],
-                "deps": ["cnot_d2_a1_r1"]
+                "op": "APPLY_H",
+                "vqs": ["a1"]
             },
             {
                 "id": "syndrome_12_r1",
                 "op": "MEASURE_Z",
-                "qubits": ["a1"],
-                "outputs": ["s12_r1"],
-                "deps": ["h_a1_r1_end"]
+                "vqs": ["a1"],
+                "produces": ["s12_r1"]
             },
             
             # Corrections based on syndrome
             # If s01_r1 == 1 and s12_r1 == 0: error on d0
             {
                 "id": "correct_d0",
-                "op": "X",
-                "qubits": ["d0"],
-                "deps": ["syndrome_01_r1", "syndrome_12_r1"],
+                "op": "APPLY_X",
+                "vqs": ["d0"],
                 "guard": {
                     "type": "and",
                     "conditions": [
@@ -244,9 +211,8 @@ def create_multi_round_adaptive() -> dict:
             # If s01_r1 == 1 and s12_r1 == 1: error on d1
             {
                 "id": "correct_d1",
-                "op": "X",
-                "qubits": ["d1"],
-                "deps": ["syndrome_01_r1", "syndrome_12_r1"],
+                "op": "APPLY_X",
+                "vqs": ["d1"],
                 "guard": {
                     "type": "and",
                     "conditions": [
@@ -259,9 +225,8 @@ def create_multi_round_adaptive() -> dict:
             # If s01_r1 == 0 and s12_r1 == 1: error on d2
             {
                 "id": "correct_d2",
-                "op": "X",
-                "qubits": ["d2"],
-                "deps": ["syndrome_01_r1", "syndrome_12_r1"],
+                "op": "APPLY_X",
+                "vqs": ["d2"],
                 "guard": {
                     "type": "and",
                     "conditions": [
@@ -275,34 +240,29 @@ def create_multi_round_adaptive() -> dict:
             {
                 "id": "measure_d0",
                 "op": "MEASURE_Z",
-                "qubits": ["d0"],
-                "outputs": ["m_d0"],
-                "deps": ["correct_d0"]
+                "vqs": ["d0"],
+                "produces": ["m_d0"]
             },
             {
                 "id": "measure_d1",
                 "op": "MEASURE_Z",
-                "qubits": ["d1"],
-                "outputs": ["m_d1"],
-                "deps": ["correct_d1"]
+                "vqs": ["d1"],
+                "produces": ["m_d1"]
             },
             {
                 "id": "measure_d2",
                 "op": "MEASURE_Z",
-                "qubits": ["d2"],
-                "outputs": ["m_d2"],
-                "deps": ["correct_d2"]
+                "vqs": ["d2"],
+                "produces": ["m_d2"]
             },
             
-            # Free qubits
-            {
-                "id": "free",
-                "op": "FREE_LQ",
-                "qubits": ["d0", "d1", "d2", "a0", "a1"],
-                "deps": ["measure_d0", "measure_d1", "measure_d2", "syndrome_01_r1", "syndrome_12_r1"]
-            }
-        ],
-        "edges": []  # Edges are implicit from deps
+            ]
+        },
+        "resources": {
+            "vqs": ["d0", "d1", "d2", "a0", "a1"],
+            "chs": [],
+            "events": ["s01_r1", "s12_r1", "m_d0", "m_d1", "m_d2"]
+        }
     }
 
 
