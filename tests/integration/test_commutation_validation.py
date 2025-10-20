@@ -63,7 +63,9 @@ class TestCommutationValidation(unittest.TestCase):
         self.assertGreater(fidelity, 0.95,
             f"Commutation changed results: fidelity {fidelity:.4f}")
     
-    @unittest.skip("TODO: Fix optimization removing too many gates")
+    @unittest.skip("KNOWN BUG: Cancellation removes gates leaving qubits uninitialized. "
+                   "H(q0)→X(q1)→H(q0)→CNOT becomes X(q1)→CNOT with q0 uninitialized. "
+                   "Fix: Make cancellation aware of qubit initialization requirements.")
     @unittest.skipUnless(HAS_QISKIT, "Qiskit not installed")
     def test_commutation_vs_qiskit(self):
         """Compare commuted circuit with Qiskit."""
