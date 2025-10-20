@@ -22,11 +22,12 @@ ROOT = Path(__file__).parent.parent
 sys.path.insert(0, str(ROOT))
 
 from runtime.client.qsyscall_client import QSyscallClient
+from qvm.tools.qvm_asm import assemble
 
 
 def create_deutsch_jozsa_circuit(oracle_type: str = "constant_0") -> dict:
     """
-    Create Deutsch-Jozsa circuit for 2-qubit input.
+    Create Deutsch-Jozsa circuit for 2-qubit input using QVM assembly.
     
     Args:
         oracle_type: Type of oracle function
@@ -39,147 +40,51 @@ def create_deutsch_jozsa_circuit(oracle_type: str = "constant_0") -> dict:
     Returns:
         QVM graph dictionary
     """
-    nodes = [
-        # Allocate 2 input qubits + 1 output qubit
-        {
-            "id": "alloc",
-            "op": "ALLOC_LQ",
-            "outputs": ["x0", "x1", "y"],
-            "profile": "logical:surface_code(d=3)"
-        },
-        
-        # Initialize output qubit to |1⟩
-        {
-            "id": "x_y",
-            "op": "X",
-            "qubits": ["y"],
-            "deps": ["alloc"]
-        },
-        
-        # Apply Hadamard to all qubits
-        {
-            "id": "h_x0",
-            "op": "H",
-            "qubits": ["x0"],
-            "deps": ["alloc"]
-        },
-        {
-            "id": "h_x1",
-            "op": "H",
-            "qubits": ["x1"],
-            "deps": ["alloc"]
-        },
-        {
-            "id": "h_y",
-            "op": "H",
-            "qubits": ["y"],
-            "deps": ["x_y"]
-        }
-    ]
-    
-    # Oracle implementation
-    oracle_deps = ["h_x0", "h_x1", "h_y"]
-    
+    # Build oracle section based on type
     if oracle_type == "constant_0":
-        # Do nothing (identity)
-        oracle_last = oracle_deps
-        
+        oracle_asm = "; Oracle: constant_0 (identity - do nothing)"
     elif oracle_type == "constant_1":
-        # Flip output qubit
-        nodes.append({
-            "id": "oracle_x",
-            "op": "X",
-            "qubits": ["y"],
-            "deps": oracle_deps
-        })
-        oracle_last = ["oracle_x"]
-        
+        oracle_asm = "; Oracle: constant_1 (flip output)\noracle: APPLY_X y"
     elif oracle_type == "balanced_x0":
-        # CNOT from x0 to y
-        nodes.append({
-            "id": "oracle_cnot",
-            "op": "CNOT",
-            "qubits": ["x0", "y"],
-            "deps": oracle_deps
-        })
-        oracle_last = ["oracle_cnot"]
-        
+        oracle_asm = "; Oracle: balanced_x0 (f = x0)\noracle: APPLY_CNOT x0, y"
     elif oracle_type == "balanced_x1":
-        # CNOT from x1 to y
-        nodes.append({
-            "id": "oracle_cnot",
-            "op": "CNOT",
-            "qubits": ["x1", "y"],
-            "deps": oracle_deps
-        })
-        oracle_last = ["oracle_cnot"]
-        
+        oracle_asm = "; Oracle: balanced_x1 (f = x1)\noracle: APPLY_CNOT x1, y"
     elif oracle_type == "balanced_xor":
-        # CNOT from x0 to y, then CNOT from x1 to y
-        nodes.append({
-            "id": "oracle_cnot0",
-            "op": "CNOT",
-            "qubits": ["x0", "y"],
-            "deps": oracle_deps
-        })
-        nodes.append({
-            "id": "oracle_cnot1",
-            "op": "CNOT",
-            "qubits": ["x1", "y"],
-            "deps": ["oracle_cnot0"]
-        })
-        oracle_last = ["oracle_cnot1"]
-    
+        oracle_asm = "; Oracle: balanced_xor (f = x0 ⊕ x1)\noracle0: APPLY_CNOT x0, y\noracle1: APPLY_CNOT x1, y"
     else:
         raise ValueError(f"Unknown oracle type: {oracle_type}")
     
-    # Apply Hadamard to input qubits
-    nodes.append({
-        "id": "h_x0_final",
-        "op": "H",
-        "qubits": ["x0"],
-        "deps": oracle_last
-    })
-    nodes.append({
-        "id": "h_x1_final",
-        "op": "H",
-        "qubits": ["x1"],
-        "deps": oracle_last
-    })
-    
-    # Measure input qubits
-    nodes.append({
-        "id": "measure_x0",
-        "op": "MEASURE_Z",
-        "qubits": ["x0"],
-        "outputs": ["m0"],
-        "deps": ["h_x0_final"]
-    })
-    nodes.append({
-        "id": "measure_x1",
-        "op": "MEASURE_Z",
-        "qubits": ["x1"],
-        "outputs": ["m1"],
-        "deps": ["h_x1_final"]
-    })
-    
-    # Free qubits
-    nodes.append({
-        "id": "free",
-        "op": "FREE_LQ",
-        "qubits": ["x0", "x1", "y"],
-        "deps": ["measure_x0", "measure_x1"]
-    })
-    
-    return {
-        "version": "0.1",
-        "metadata": {
-            "name": f"deutsch_jozsa_{oracle_type}",
-            "description": f"Deutsch-Jozsa algorithm with {oracle_type} oracle"
-        },
-        "nodes": nodes,
-        "edges": []
-    }
+    # Build complete circuit
+    asm = f"""
+.version 0.1
+.caps CAP_ALLOC CAP_COMPUTE CAP_MEASURE
+
+; Deutsch-Jozsa Algorithm with {oracle_type} oracle
+; Circuit: x0,x1 in superposition → Oracle → Hadamard → Measure
+; Result: |00⟩ = constant, any |1⟩ = balanced
+
+alloc: ALLOC_LQ n=3, profile="logical:Surface(d=3)" -> x0, x1, y
+
+; Initialize output qubit to |1⟩ (creates |−⟩ after H)
+x_init: APPLY_X y
+
+; Apply Hadamard to all qubits (create superposition)
+h_x0: APPLY_H x0
+h_x1: APPLY_H x1
+h_y: APPLY_H y
+
+{oracle_asm}
+
+; Apply Hadamard to input qubits (interference)
+h_x0_final: APPLY_H x0
+h_x1_final: APPLY_H x1
+
+; Measure input qubits (measurements consume qubits)
+m0: MEASURE_Z x0 -> m0
+m1: MEASURE_Z x1 -> m1
+m_y: MEASURE_Z y -> m_y
+"""
+    return assemble(asm)
 
 
 def run_deutsch_jozsa(client: QSyscallClient, oracle_type: str, shots: int = 10):
@@ -206,9 +111,12 @@ def run_deutsch_jozsa(client: QSyscallClient, oracle_type: str, shots: int = 10)
         result = client.submit_and_wait(circuit, timeout_ms=10000, seed=i)
         
         if result['state'] == 'COMPLETED':
-            m0 = result['events']['m0']
-            m1 = result['events']['m1']
+            m0 = result['events'].get('m0', 0)
+            m1 = result['events'].get('m1', 0)
             results.append((m0, m1))
+        else:
+            print(f"  Shot {i+1} failed: {result.get('error', 'Unknown')}")
+            return False
     
     # Analyze results
     all_zero = all(m0 == 0 and m1 == 0 for m0, m1 in results)
@@ -344,8 +252,13 @@ def main():
     
     # Negotiate capabilities
     print("\nNegotiating capabilities...")
-    caps_result = client.negotiate_capabilities(["CAP_ALLOC"])
+    caps_result = client.negotiate_capabilities([
+        "CAP_ALLOC",
+        "CAP_COMPUTE",
+        "CAP_MEASURE"
+    ])
     print(f"Session ID: {caps_result['session_id']}")
+    print(f"Granted: {caps_result.get('granted', [])}")
     
     # Test all oracles
     demonstrate_all_oracles(client)
