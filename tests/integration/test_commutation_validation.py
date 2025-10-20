@@ -152,7 +152,13 @@ class TestCommutationValidation(unittest.TestCase):
         converter = IRToQVMConverter()
         qvm_graph = converter.convert(circuit)
         
-        executor = EnhancedExecutor()
+        # Create executor with all capabilities for testing
+        test_caps = {
+            "CAP_ALLOC": True,
+            "CAP_COMPUTE": True,
+            "CAP_MEASURE": True
+        }
+        executor = EnhancedExecutor(caps=test_caps)
         counts = {}
         
         for _ in range(shots):

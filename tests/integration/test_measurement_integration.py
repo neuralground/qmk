@@ -19,6 +19,14 @@ sys.path.insert(0, str(ROOT))
 from kernel.executor.enhanced_executor import EnhancedExecutor
 
 
+# Test capabilities - all enabled for integration tests
+TEST_CAPS = {
+    "CAP_ALLOC": True,
+    "CAP_COMPUTE": True,
+    "CAP_MEASURE": True
+}
+
+
 class TestMeasurementIntegration(unittest.TestCase):
     """Integration tests for measurement bases."""
     
@@ -52,7 +60,7 @@ class TestMeasurementIntegration(unittest.TestCase):
             }
         }
         
-        executor = EnhancedExecutor()
+        executor = EnhancedExecutor(caps=TEST_CAPS)
         result = executor.execute(qvm_graph)
         
         self.assertEqual(result['status'], 'COMPLETED')
@@ -89,7 +97,7 @@ class TestMeasurementIntegration(unittest.TestCase):
             }
         }
         
-        executor = EnhancedExecutor()
+        executor = EnhancedExecutor(caps=TEST_CAPS)
         result = executor.execute(qvm_graph)
         
         self.assertEqual(result['status'], 'COMPLETED')
@@ -127,7 +135,7 @@ class TestMeasurementIntegration(unittest.TestCase):
             }
         }
         
-        executor = EnhancedExecutor()
+        executor = EnhancedExecutor(caps=TEST_CAPS)
         result = executor.execute(qvm_graph)
         
         self.assertEqual(result['status'], 'COMPLETED')
@@ -169,7 +177,7 @@ class TestMeasurementIntegration(unittest.TestCase):
             }
         }
         
-        executor = EnhancedExecutor()
+        executor = EnhancedExecutor(caps=TEST_CAPS)
         result = executor.execute(qvm_graph)
         
         self.assertEqual(result['status'], 'COMPLETED')
@@ -215,7 +223,7 @@ class TestMeasurementIntegration(unittest.TestCase):
             }
         }
         
-        executor = EnhancedExecutor()
+        executor = EnhancedExecutor(caps=TEST_CAPS)
         result = executor.execute(qvm_graph)
         
         self.assertEqual(result['status'], 'COMPLETED')
@@ -231,7 +239,7 @@ class TestMeasurementIntegration(unittest.TestCase):
         with open(example_path) as f:
             qvm_graph = json.load(f)
         
-        executor = EnhancedExecutor()
+        executor = EnhancedExecutor(caps=TEST_CAPS)
         result = executor.execute(qvm_graph)
         
         self.assertEqual(result['status'], 'COMPLETED')
@@ -246,7 +254,7 @@ class TestMeasurementIntegration(unittest.TestCase):
         with open(example_path) as f:
             qvm_graph = json.load(f)
         
-        executor = EnhancedExecutor()
+        executor = EnhancedExecutor(caps=TEST_CAPS)
         result = executor.execute(qvm_graph)
         
         self.assertEqual(result['status'], 'COMPLETED')
@@ -296,7 +304,7 @@ class TestMeasurementIntegration(unittest.TestCase):
             }
         }
         
-        executor = EnhancedExecutor()
+        executor = EnhancedExecutor(caps=TEST_CAPS)
         result = executor.execute(qvm_graph)
         
         self.assertEqual(result['status'], 'COMPLETED')
@@ -341,7 +349,7 @@ class TestMeasurementIntegration(unittest.TestCase):
                     }
                 }
                 
-                executor = EnhancedExecutor(seed=i)
+                executor = EnhancedExecutor(seed=i, caps=TEST_CAPS)
                 result = executor.execute(qvm_graph)
                 results[basis].append(result['events']['m0'])
         
