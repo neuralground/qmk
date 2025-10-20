@@ -71,15 +71,27 @@ def main():
         print()
         
         # Step 5: Get telemetry
-        print("5. Getting telemetry...")
+        print("5. Resource usage summary...")
         telemetry = client.get_telemetry()
         
-        print(f"   Logical qubits: {telemetry['resource_usage']['logical_qubits_allocated']}")
-        print(f"   Physical qubits: {telemetry['resource_usage']['physical_qubits_used']}")
-        print(f"   Channels: {telemetry['resource_usage']['channels_open']}")
+        # Show peak usage during execution
+        peak = result.get('peak_resources', {})
+        if peak:
+            print(f"   Peak usage (during execution):")
+            print(f"      Logical qubits: {peak.get('logical_qubits', 0)}")
+            print(f"      Physical qubits: {peak.get('physical_qubits', 0)}")
+            print(f"      Channels: {peak.get('channels', 0)}")
+        
+        # Show current usage (after cleanup)
+        current = telemetry['resource_usage']
+        print(f"   Current usage (after cleanup):")
+        print(f"      Logical qubits: {current['logical_qubits_allocated']} ✅")
+        print(f"      Physical qubits: {current['physical_qubits_used']} ✅")
+        print(f"      Channels: {current['channels_open']} ✅")
         print()
         
         print("✅ Bell state preparation completed successfully!")
+        print("   (Resources automatically cleaned up)")
     
     elif result['state'] == 'FAILED':
         print(f"   Error: {result.get('error', {})}")

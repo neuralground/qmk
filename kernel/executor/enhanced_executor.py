@@ -163,10 +163,19 @@ class EnhancedExecutor:
                     allocated_qubits.extend(node.get("vqs", []))
             
             # === PHASE 3: UNLOAD (Success) ===
+            # Capture telemetry BEFORE cleanup to show peak resource usage
+            peak_telemetry = self.resource_manager.get_telemetry()
+            peak_usage = self.resource_manager.get_resource_usage()
+            
             result = {
                 "status": "COMPLETED",
                 "events": dict(self.events),
-                "telemetry": self.resource_manager.get_telemetry(),
+                "telemetry": peak_telemetry,
+                "peak_resources": {
+                    "logical_qubits": peak_usage["logical_qubits_allocated"],
+                    "physical_qubits": peak_usage["physical_qubits_used"],
+                    "channels": peak_usage["channels_open"]
+                },
                 "execution_log": self.execution_log,
             }
             

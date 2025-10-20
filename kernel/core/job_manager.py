@@ -75,6 +75,7 @@ class Job:
     progress: JobProgress = field(default_factory=JobProgress)
     events: Dict[str, Any] = field(default_factory=dict)
     telemetry: Dict[str, Any] = field(default_factory=dict)
+    peak_resources: Dict[str, Any] = field(default_factory=dict)
     
     # Error information
     error: Optional[Dict] = None
@@ -103,6 +104,9 @@ class Job:
         
         if self.telemetry:
             result["telemetry"] = self.telemetry
+        
+        if self.peak_resources:
+            result["peak_resources"] = self.peak_resources
         
         if self.error:
             result["error"] = self.error
@@ -429,6 +433,7 @@ class JobManager:
                     job.completed_at = time.time()
                     job.events = result.get("events", {})
                     job.telemetry = result.get("telemetry", {})
+                    job.peak_resources = result.get("peak_resources", {})
                     job.progress.nodes_executed = len(job.graph.get("nodes", []))
                     job.progress.nodes_total = len(job.graph.get("nodes", []))
             else:
