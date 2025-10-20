@@ -1,6 +1,6 @@
 # QIR Optimization Passes - Master Index
 
-**Complete documentation for all 17 optimization passes in the QMK QIR optimizer.**
+**Complete documentation for all 20 optimization passes in the QMK QIR optimizer.**
 
 ## 📚 Individual Pass Documentation
 
@@ -282,6 +282,69 @@ Savings: 67% T-count reduction
 **Performance**:
 - Space-time volume reduction: 20-40% typical
 - Critical for surface codes
+
+---
+
+## Hardware-Aware Passes
+
+These passes optimize for specific hardware topologies and constraints.
+
+### 13. [SWAP Insertion Pass](passes/18_swap_insertion.md) 📖
+
+**Purpose**: Insert SWAP gates to satisfy hardware connectivity
+
+**Research**: Zulehner et al. (2018), Murali et al. (2019)
+
+**[→ Full Documentation](passes/18_swap_insertion.md)**
+
+**Techniques**:
+- Path finding for qubit routing
+- SWAP insertion for non-adjacent gates
+- Topology-aware optimization
+
+**Performance**:
+- SWAP overhead: <20% target
+- Critical for hardware execution
+
+---
+
+### 14. [Qubit Mapping Pass](passes/19_qubit_mapping.md) 📖
+
+**Purpose**: Map logical qubits to physical qubits optimally
+
+**Research**: Zulehner et al. (2018), Li et al. (2019)
+
+**[→ Full Documentation](passes/19_qubit_mapping.md)**
+
+**Techniques**:
+- Interaction frequency analysis
+- Greedy mapping algorithm
+- Distance minimization
+
+**Performance**:
+- SWAP reduction: 50-70% typical
+- Must run before SWAP insertion
+
+---
+
+### 15. [Measurement Canonicalization Pass](passes/20_measurement_canonicalization.md) 📖
+
+**Purpose**: Canonicalize measurement basis patterns
+
+**Research**: Wiseman & Milburn (2009), Cramer et al. (2010)
+
+**[→ Full Documentation](passes/20_measurement_canonicalization.md)**
+
+**Techniques**:
+- X-basis pattern detection (H → MEASURE_Z)
+- Y-basis pattern detection (S† → H → MEASURE_Z)
+- Bell-basis pattern detection
+- Per-qubit history tracking (v2)
+
+**Performance**:
+- Gate reduction: 5-15% typical
+- Improves readability
+- Two versions: v1 (adjacent), v2 (non-adjacent)
 
 ---
 
