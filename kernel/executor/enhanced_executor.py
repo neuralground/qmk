@@ -25,6 +25,7 @@ from kernel.security.capability_system import (
     CapabilityToken,
     CapabilityType
 )
+from qvm.static_verifier import QVMStaticVerifier, VerificationError
 
 
 # Capability requirements for operations
@@ -60,7 +61,9 @@ class EnhancedExecutor:
                  entanglement_firewall: Optional[EntanglementGraph] = None,
                  linear_type_system: Optional[LinearTypeSystem] = None,
                  capability_system: Optional[CapabilitySystem] = None,
-                 capability_token: Optional[CapabilityToken] = None):
+                 capability_token: Optional[CapabilityToken] = None,
+                 require_certification: bool = True,
+                 strict_verification: bool = True):
         """
         Initialize executor.
         
@@ -72,6 +75,8 @@ class EnhancedExecutor:
             linear_type_system: Optional linear type system for use-once semantics
             capability_system: Optional capability system for operation authorization
             capability_token: Optional capability token for this execution
+            require_certification: If True, graphs must be certified before execution (RECOMMENDED)
+            strict_verification: If True, warnings are treated as errors in verification
         """
         self.resource_manager = EnhancedResourceManager(
             max_physical_qubits=max_physical_qubits,
@@ -91,6 +96,10 @@ class EnhancedExecutor:
         self.capability_system = capability_system
         self.capability_token = capability_token
         
+        # Static verifier for graph certification
+        self.require_certification = require_certification
+        self.static_verifier = QVMStaticVerifier(strict_mode=strict_verification)
+        
         # Track qubit tenant ownership for firewall
         self.qubit_tenants: Dict[str, str] = {}
         
@@ -107,12 +116,57 @@ class EnhancedExecutor:
         """
         Execute a QVM graph.
         
+        CRITICAL: Graph must pass static verification before execution.
+        NO GRAPH IS EXECUTED WITHOUT CERTIFICATION.
+        
         Args:
             qvm_graph: QVM graph in JSON format
         
         Returns:
             Execution result with telemetry
+        
+        Raises:
+            VerificationError: If graph fails static verification
         """
+        # GATE KEEPER: Static verification BEFORE execution
+        if self.require_certification:
+            # Get available capabilities
+            available_caps = None
+            if self.capability_token:
+                available_caps = {cap.value for cap in self.capability_token.capabilities}
+            
+            # Get tenant ID
+            tenant_id = self.capability_token.tenant_id if self.capability_token else None
+            
+            # CERTIFY THE GRAPH
+            is_certified, verification_result = self.static_verifier.certify_graph(
+                qvm_graph,
+                available_capabilities=available_caps,
+                tenant_id=tenant_id
+            )
+            
+            # REJECT if not certified
+            if not is_certified:
+                # Log rejection
+                self.execution_log.append(("REJECTED", "static_verification_failed"))
+                
+                # Generate report
+                report = self.static_verifier.get_certification_report(verification_result)
+                
+                # Raise error with full details
+                raise VerificationError(
+                    f"Graph failed static verification with {len(verification_result.errors)} errors",
+                    "certification_failed",
+                    {
+                        "errors": [str(e) for e in verification_result.errors],
+                        "report": report,
+                        "verification_result": verification_result.to_dict()
+                    }
+                )
+            
+            # Log successful certification
+            self.execution_log.append(("CERTIFIED", "static_verification_passed"))
+        
         # Parse graph
         if isinstance(qvm_graph, str):
             graph = json.loads(qvm_graph)
@@ -204,10 +258,14 @@ class EnhancedExecutor:
             node_caps = set(node.get("caps", []))
             available = node_caps | set(global_caps) | {c for c, v in self.caps.items() if v}
             
-            if not required.issubset(available):
-                missing = required - available
+            # Convert required CapabilityType to strings for comparison
+            required_str = {cap.value if hasattr(cap, 'value') else str(cap) for cap in required}
+            
+            if not required_str.issubset(available):
+                missing = required_str - available
+                missing_str = ', '.join(sorted(missing))
                 raise RuntimeError(
-                    f"Missing capabilities for {op}: {', '.join(sorted(missing))}"
+                    f"Missing capabilities for {op}: {missing_str}"
                 )
     
     def _check_guard(self, node: Dict[str, Any]) -> bool:

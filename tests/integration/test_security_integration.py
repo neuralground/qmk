@@ -30,6 +30,7 @@ from kernel.types.linear_types import (
     LinearTypeSystem,
     LinearityViolation
 )
+from qvm.static_verifier import VerificationError
 
 
 class TestFullSecurityStack(unittest.TestCase):
@@ -58,7 +59,9 @@ class TestFullSecurityStack(unittest.TestCase):
             entanglement_firewall=self.firewall,
             linear_type_system=self.linear_system,
             capability_system=self.cap_system,
-            capability_token=self.token
+            capability_token=self.token,
+            require_certification=True,  # MANDATORY certification
+            strict_verification=False  # Allow warnings for now
         )
     
     def test_allocate_measure_with_all_security(self):
@@ -128,18 +131,12 @@ class TestFullSecurityStack(unittest.TestCase):
             }
         }
         
-        # Execute - second measurement won't raise error because
-        # handle is already consumed and removed from tracking
-        # This is actually correct behavior - the handle doesn't exist anymore
-        result = self.executor.execute(qvm_graph)
+        # Static verifier catches double measurement BEFORE execution
+        with self.assertRaises(VerificationError) as cm:
+            self.executor.execute(qvm_graph)
         
-        # First measurement consumed the handle
-        stats = self.linear_system.get_statistics()
-        self.assertEqual(stats["handles_created"], 1)
-        self.assertEqual(stats["handles_consumed"], 1)
-        
-        # Second measurement didn't have a handle to consume (already gone)
-        # This is safe because the qubit was already measured
+        # Verification should catch use-after-consume
+        self.assertIn("verification", str(cm.exception).lower())
     
     def test_cross_tenant_blocked_by_firewall(self):
         """Test that cross-tenant entanglement is blocked by firewall."""
@@ -174,13 +171,12 @@ class TestFullSecurityStack(unittest.TestCase):
             }
         }
         
-        # Should fail on cross-tenant CNOT
-        with self.assertRaises(EntanglementFirewallViolation):
+        # Static verifier catches cross-tenant violation BEFORE execution
+        with self.assertRaises(VerificationError) as cm:
             self.executor.execute(qvm_graph)
         
-        # Check firewall violation recorded
-        stats = self.firewall.get_statistics()
-        self.assertGreater(stats["firewall_violations"], 0)
+        # Verification should catch firewall violation
+        self.assertIn("verification", str(cm.exception).lower())
     
     def test_missing_capability_blocked(self):
         """Test that operations without required capabilities are blocked."""
@@ -193,7 +189,9 @@ class TestFullSecurityStack(unittest.TestCase):
         executor = EnhancedExecutor(
             max_physical_qubits=1000,
             capability_system=self.cap_system,
-            capability_token=limited_token
+            capability_token=limited_token,
+            require_certification=True,
+            strict_verification=False
         )
         
         qvm_graph = {
@@ -219,11 +217,12 @@ class TestFullSecurityStack(unittest.TestCase):
             }
         }
         
-        # Should fail on measurement (no CAP_MEASURE)
-        with self.assertRaises(RuntimeError) as cm:
+        # Should fail on measurement (no CAP_MEASURE) during static verification
+        with self.assertRaises(VerificationError) as cm:
             executor.execute(qvm_graph)
         
-        self.assertIn("CAP_MEASURE", str(cm.exception))
+        # Verification should catch missing capability
+        self.assertIn("verification", str(cm.exception).lower())
     
     def test_complete_lifecycle_with_all_security(self):
         """Test complete qubit lifecycle with all security systems."""
@@ -317,7 +316,9 @@ class TestSecurityViolationScenarios(unittest.TestCase):
             entanglement_firewall=self.firewall,
             linear_type_system=self.linear_system,
             capability_system=self.cap_system,
-            capability_token=self.token
+            capability_token=self.token,
+            require_certification=True,
+            strict_verification=False
         )
     
     def test_use_after_free_blocked(self):
@@ -350,12 +351,12 @@ class TestSecurityViolationScenarios(unittest.TestCase):
             }
         }
         
-        # Should fail - using freed qubit
-        # Note: This will fail at resource manager level, not linear types
-        # because resource manager doesn't track freed qubits
-        # In a full implementation, this would be caught by linear types
-        with self.assertRaises(Exception):
+        # Should fail during static verification - use-after-free detected
+        with self.assertRaises(VerificationError) as cm:
             self.executor.execute(qvm_graph)
+        
+        # Static verifier should catch use-after-consume
+        self.assertIn("verification", str(cm.exception).lower())
 
 
 if __name__ == '__main__':

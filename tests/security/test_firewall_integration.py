@@ -28,7 +28,9 @@ class TestFirewallIntegration(unittest.TestCase):
         self.firewall = EntanglementGraph()
         self.executor = EnhancedExecutor(
             max_physical_qubits=1000,
-            entanglement_firewall=self.firewall
+            entanglement_firewall=self.firewall,
+            require_certification=False,  # Test runtime firewall only
+            caps={"CAP_ALLOC": True, "CAP_MEASURE": True}  # Old-style caps
         )
     
     def test_same_tenant_cnot_allowed(self):
