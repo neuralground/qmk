@@ -80,6 +80,8 @@ class SessionManager:
     
     # Standard capabilities
     CAP_ALLOC = "CAP_ALLOC"          # Allocate logical qubits
+    CAP_COMPUTE = "CAP_COMPUTE"      # Quantum gate operations
+    CAP_MEASURE = "CAP_MEASURE"      # Measurement operations
     CAP_TELEPORT = "CAP_TELEPORT"    # Teleportation operations
     CAP_MAGIC = "CAP_MAGIC"          # Magic state distillation
     CAP_LINK = "CAP_LINK"            # Entanglement channels
@@ -87,7 +89,8 @@ class SessionManager:
     CAP_DEBUG = "CAP_DEBUG"          # Debug operations
     
     ALL_CAPABILITIES = {
-        CAP_ALLOC, CAP_TELEPORT, CAP_MAGIC, CAP_LINK, CAP_CHECKPOINT, CAP_DEBUG
+        CAP_ALLOC, CAP_COMPUTE, CAP_MEASURE, CAP_TELEPORT, CAP_MAGIC, 
+        CAP_LINK, CAP_CHECKPOINT, CAP_DEBUG
     }
     
     def __init__(self, default_quota: Optional[SessionQuota] = None):

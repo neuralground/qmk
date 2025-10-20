@@ -34,9 +34,13 @@ class QMKServer:
         """
         # Initialize core components
         self.session_manager = SessionManager()
-        self.resource_manager = EnhancedResourceManager()
-        self.executor = EnhancedExecutor(self.resource_manager)
+        
+        # Create executor with all capabilities enabled
+        all_caps = {cap: True for cap in self.session_manager.ALL_CAPABILITIES}
+        self.executor = EnhancedExecutor(max_physical_qubits=10000, caps=all_caps)
         self.job_manager = JobManager(executor=self.executor)
+        # Get resource manager from executor
+        self.resource_manager = self.executor.resource_manager
         
         # Initialize RPC server
         self.rpc_server = RPCServer(socket_path)

@@ -51,14 +51,6 @@
         "produces": [
           "mB"
         ]
-      },
-      {
-        "id": "n6",
-        "op": "FREE_LQ",
-        "vqs": [
-          "qA",
-          "qB"
-        ]
       }
     ]
   },

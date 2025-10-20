@@ -29,7 +29,8 @@ def main():
     print("1. Negotiating capabilities...")
     caps_result = client.negotiate_capabilities([
         "CAP_ALLOC",
-        "CAP_TELEPORT"
+        "CAP_COMPUTE",  # Required for quantum operations
+        "CAP_MEASURE"   # Required for measurements
     ])
     
     print(f"   Session ID: {caps_result['session_id']}")

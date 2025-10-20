@@ -418,10 +418,7 @@ class JobManager:
             
             # Execute graph
             if self.executor:
-                result = self.executor.execute_graph(
-                    job.graph,
-                    seed=job.policy.seed
-                )
+                result = self.executor.execute(job.graph)
                 
                 with self._lock:
                     if job.state == JobState.CANCELLED:
