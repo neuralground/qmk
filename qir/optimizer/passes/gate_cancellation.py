@@ -47,12 +47,174 @@ Inverse pairs (G · G† = I):
 - Most effective on unoptimized circuits
 - Low overhead, always beneficial
 
-**Examples:**
-  H → H → (removed)
-  X → X → (removed)
-  CNOT → CNOT → (removed)
-  S → S† → (removed)
-  T → T† → (removed)
+**Mini-Tutorial: Understanding Gate Cancellation**
+
+Gate cancellation exploits the algebraic properties of quantum gates. Many gates
+are their own inverse (self-inverse), meaning applying them twice returns to the
+original state. Other gates have explicit inverses.
+
+Mathematical Background:
+- Identity: I|ψ⟩ = |ψ⟩
+- Self-inverse: G²|ψ⟩ = GG|ψ⟩ = I|ψ⟩ = |ψ⟩
+- Inverse pair: GG†|ψ⟩ = I|ψ⟩ = |ψ⟩
+
+Why This Works:
+When two adjacent gates cancel, they have no net effect on the quantum state.
+Removing them preserves circuit semantics while reducing gate count.
+
+**Detailed Examples:**
+
+Example 1: Self-Inverse Gates (Hadamard)
+  Before:
+    q0: ─H─H─X─
+    
+  After:
+    q0: ─X─
+    
+  Explanation: H² = I, so two Hadamards cancel
+  Savings: 2 gates → 0 gates (100% reduction)
+  
+  State evolution:
+    |0⟩ --H--> |+⟩ --H--> |0⟩  (back to original)
+
+Example 2: Self-Inverse Gates (Pauli X)
+  Before:
+    q0: ─X─X─H─
+    
+  After:
+    q0: ─H─
+    
+  Explanation: X² = I (bit flip twice = no change)
+  Savings: 2 gates → 0 gates
+  
+  State evolution:
+    |0⟩ --X--> |1⟩ --X--> |0⟩  (back to original)
+
+Example 3: Self-Inverse Two-Qubit Gates (CNOT)
+  Before:
+    q0: ─●─●─
+    q1: ─⊕─⊕─
+    
+  After:
+    q0: ───
+    q1: ───
+    
+  Explanation: CNOT² = I (controlled-NOT twice = no change)
+  Savings: 2 CNOTs → 0 CNOTs
+  
+  State evolution on |00⟩:
+    |00⟩ --CNOT--> |00⟩ --CNOT--> |00⟩  (unchanged)
+  State evolution on |10⟩:
+    |10⟩ --CNOT--> |11⟩ --CNOT--> |10⟩  (back to original)
+
+Example 4: Inverse Pairs (S and S†)
+  Before:
+    q0: ─S─S†─H─
+    
+  After:
+    q0: ─H─
+    
+  Explanation: S·S† = I (phase gate and its inverse cancel)
+  Savings: 2 gates → 0 gates
+  
+  Mathematical:
+    S = [[1, 0], [0, i]]
+    S† = [[1, 0], [0, -i]]
+    S·S† = [[1, 0], [0, i·(-i)]] = [[1, 0], [0, 1]] = I
+
+Example 5: Inverse Pairs (T and T†)
+  Before:
+    q0: ─T─T†─X─
+    
+  After:
+    q0: ─X─
+    
+  Explanation: T·T† = I (π/8 gate and its inverse cancel)
+  Savings: 2 gates → 0 gates
+  
+  Why This Matters:
+    T gates are expensive in fault-tolerant quantum computing
+    (require magic state distillation). Cancelling them saves
+    significant resources!
+
+Example 6: Rotation Cancellation
+  Before:
+    q0: ─RZ(π/4)─RZ(-π/4)─H─
+    
+  After:
+    q0: ─H─
+    
+  Explanation: RZ(θ)·RZ(-θ) = RZ(0) = I
+  Savings: 2 rotations → 0 rotations
+  
+  Mathematical:
+    RZ(θ) = exp(-iθZ/2) = [[e^(-iθ/2), 0], [0, e^(iθ/2)]]
+    RZ(θ)·RZ(-θ) = RZ(θ-θ) = RZ(0) = I
+
+Example 7: Complex Circuit
+  Before:
+    q0: ─H─X─X─S─S†─H─T─T†─
+    q1: ─●─⊕─⊕─●─────────────
+    
+  After:
+    q0: ─H─S─S†─H─T─T†─
+    q1: ─●─────●───────
+    
+  Then after another pass:
+    q0: ─H─H─T─T†─
+    q1: ─●───────
+    
+  Then final:
+    q0: ─T─T†─
+    q1: ───────
+    
+  Then:
+    q0: ───
+    q1: ───
+    
+  Explanation: Multiple cancellations in sequence
+  Savings: 8 gates → 0 gates (100% reduction!)
+  
+  This shows why multiple passes can be beneficial - each
+  cancellation may expose new cancellation opportunities.
+
+Example 8: Real-World Circuit (VQE Ansatz)
+  Before (12 gates):
+    q0: ─RZ(θ₁)─H─●─H─RZ(θ₂)─H─●─H─RZ(θ₃)─
+    q1: ──────────⊕────────────⊕──────────
+    
+  After optimization (8 gates):
+    q0: ─RZ(θ₁)─H─●─RZ(θ₂)─H─●─RZ(θ₃)─
+    q1: ──────────⊕────────────⊕──────────
+    
+  Explanation: H-CNOT-H pattern simplified
+  Savings: 4 H gates → 2 H gates (33% reduction)
+
+**Common Patterns:**
+
+1. Measurement Basis Change:
+   H-Measure-H → Just measure in X basis
+   
+2. Debugging Artifacts:
+   X-X from debugging code left in
+   
+3. Compilation Artifacts:
+   H-H from naive gate decomposition
+   
+4. Optimization Artifacts:
+   Gates that cancel after other optimizations
+
+**When It Doesn't Apply:**
+
+Non-adjacent gates:
+  q0: ─H─X─H─  (H gates not adjacent, can't cancel)
+  
+Different qubits:
+  q0: ─H─
+  q1: ─H─  (Different qubits, can't cancel)
+  
+Gates with different parameters:
+  q0: ─RZ(π/4)─RZ(π/3)─  (Different angles, can't cancel)
 """
 
 import time
