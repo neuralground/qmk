@@ -23,6 +23,11 @@ import re
 import sys
 from typing import Dict, List, Any, Tuple, Optional
 
+try:
+    from .qvm_asm_macros import preprocess as preprocess_macros
+except ImportError:
+    from qvm_asm_macros import preprocess as preprocess_macros
+
 
 class AssemblyParser:
     """Parser for QVM assembly language."""
@@ -297,10 +302,23 @@ class AssemblyParser:
         return qvm
 
 
-def assemble(assembly: str) -> Dict[str, Any]:
-    """Assemble QVM assembly to JSON."""
+def assemble(assembly: str, filename: Optional[str] = None) -> Dict[str, Any]:
+    """
+    Assemble QVM assembly to JSON with macro preprocessing.
+    
+    Args:
+        assembly: Raw assembly code (may contain macros)
+        filename: Optional filename for .include resolution
+        
+    Returns:
+        QVM JSON graph
+    """
+    # Phase 1: Preprocess macros
+    expanded = preprocess_macros(assembly, filename)
+    
+    # Phase 2: Parse expanded assembly
     parser = AssemblyParser()
-    return parser.parse(assembly)
+    return parser.parse(expanded)
 
 
 def main():
