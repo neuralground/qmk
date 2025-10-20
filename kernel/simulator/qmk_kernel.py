@@ -40,11 +40,9 @@ class QMKKernel:
             vqs = n.get("vqs",[])
             # Guard check
             guard = n.get("guard")
-            if guard:
-                ev = guard["event"]; eq = guard["equals"]
-                if self.events.get(ev) != eq:
-                    log.append(("SKIP", n["id"], op))
-                    continue
+            if guard and not self._check_guard(guard):
+                log.append(("SKIP", n["id"], op))
+                continue
             if op == "ALLOC_LQ":
                 self.rm.alloc(vqs)
                 log.append(("ALLOC", list(self.rm.mapping().items())))
@@ -71,3 +69,34 @@ class QMKKernel:
             else:
                 raise RuntimeError(f"Unknown opcode {op}")
         return log
+    
+    def _check_guard(self, guard: dict) -> bool:
+        """Check if guard condition is satisfied."""
+        # Handle complex guards (AND/OR)
+        guard_type = guard.get("type")
+        
+        if guard_type == "and":
+            # All conditions must be true
+            conditions = guard.get("conditions", [])
+            for cond in conditions:
+                if not self._check_single_condition(cond):
+                    return False
+            return True
+        
+        elif guard_type == "or":
+            # At least one condition must be true
+            conditions = guard.get("conditions", [])
+            for cond in conditions:
+                if self._check_single_condition(cond):
+                    return True
+            return False
+        
+        else:
+            # Simple guard
+            return self._check_single_condition(guard)
+    
+    def _check_single_condition(self, condition: dict) -> bool:
+        """Check a single guard condition."""
+        event_id = condition["event"]
+        expected = condition.get("equals", condition.get("value", 0))
+        return self.events.get(event_id) == expected

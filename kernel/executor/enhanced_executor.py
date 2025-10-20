@@ -393,8 +393,33 @@ class EnhancedExecutor:
         if not guard:
             return True
         
-        event_id = guard["event"]
-        expected = guard["equals"]
+        # Handle complex guards (AND/OR)
+        guard_type = guard.get("type")
+        
+        if guard_type == "and":
+            # All conditions must be true
+            conditions = guard.get("conditions", [])
+            for cond in conditions:
+                if not self._check_single_condition(cond):
+                    return False
+            return True
+        
+        elif guard_type == "or":
+            # At least one condition must be true
+            conditions = guard.get("conditions", [])
+            for cond in conditions:
+                if self._check_single_condition(cond):
+                    return True
+            return False
+        
+        else:
+            # Simple guard
+            return self._check_single_condition(guard)
+    
+    def _check_single_condition(self, condition: Dict[str, Any]) -> bool:
+        """Check a single guard condition."""
+        event_id = condition["event"]
+        expected = condition.get("equals", condition.get("value", 0))
         
         if event_id not in self.events:
             # Event not yet produced - this shouldn't happen in valid graphs
