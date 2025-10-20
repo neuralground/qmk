@@ -11,6 +11,7 @@ ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)
 sys.path.insert(0, ROOT)
 
 from kernel.executor.enhanced_executor import EnhancedExecutor
+from tests.test_helpers import create_test_executor
 
 
 class TestEnhancedExecutor(unittest.TestCase):
@@ -18,7 +19,7 @@ class TestEnhancedExecutor(unittest.TestCase):
     
     def setUp(self):
         """Set up test fixtures."""
-        self.executor = EnhancedExecutor(seed=42)
+        self.executor = create_test_executor(seed=42)
     
     def test_simple_bell_state(self):
         """Test executing simple Bell state preparation."""
@@ -236,7 +237,7 @@ class TestEnhancedExecutor(unittest.TestCase):
         }
         
         # Create executor with CAP_ALLOC disabled
-        executor = EnhancedExecutor(seed=42, caps={"CAP_ALLOC": False})
+        executor = create_test_executor(seed=42, caps={"CAP_ALLOC": False})
         
         with self.assertRaises(RuntimeError) as ctx:
             executor.execute(graph)
@@ -260,11 +261,11 @@ class TestEnhancedExecutor(unittest.TestCase):
         }
         
         # First run
-        executor1 = EnhancedExecutor(seed=42)
+        executor1 = create_test_executor(seed=42)
         result1 = executor1.execute(graph)
         
         # Second run with same seed
-        executor2 = EnhancedExecutor(seed=42)
+        executor2 = create_test_executor(seed=42)
         result2 = executor2.execute(graph)
         
         # Should get same measurement outcome
@@ -284,7 +285,7 @@ class TestRealWorldGraphs(unittest.TestCase):
         with open(graph_path) as f:
             graph = json.load(f)
         
-        executor = EnhancedExecutor(seed=42)
+        executor = create_test_executor(seed=42)
         result = executor.execute(graph)
         
         self.assertEqual(result["status"], "COMPLETED")

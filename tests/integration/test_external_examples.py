@@ -23,6 +23,7 @@ sys.path.insert(0, str(ROOT))
 from kernel.hardware.qiskit_simulator_backend import QiskitSimulatorBackend
 from kernel.hardware.azure_quantum_simulator_backend import AzureQuantumSimulatorBackend
 from kernel.executor.enhanced_executor import EnhancedExecutor
+from tests.test_helpers import create_test_executor
 
 try:
     from qiskit import QuantumCircuit
@@ -221,7 +222,7 @@ class TestIBMQiskitExamples(unittest.TestCase):
     
     def _run_qmk(self, qvm_graph, shots=1000):
         """Run circuit on QMK."""
-        executor = EnhancedExecutor()
+        executor = create_test_executor()
         counts = {}
         
         for _ in range(shots):
@@ -288,7 +289,7 @@ class TestMicrosoftQSharpExamples(unittest.TestCase):
         }
         
         # Run on QMK
-        executor = EnhancedExecutor()
+        executor = create_test_executor()
         counts = {}
         shots = 1000
         
@@ -326,7 +327,7 @@ class TestMicrosoftQSharpExamples(unittest.TestCase):
             'caps': ['CAP_ALLOC']
         }
         
-        executor = EnhancedExecutor()
+        executor = create_test_executor()
         counts = {'0': 0, '1': 0}
         shots = 1000
         

@@ -20,6 +20,7 @@ from qir.optimizer import (
 )
 from qir.optimizer.passes import GateCancellationPass, GateCommutationPass
 from kernel.executor.enhanced_executor import EnhancedExecutor
+from tests.test_helpers import create_test_executor
 
 try:
     from qiskit import QuantumCircuit
@@ -161,7 +162,7 @@ class TestGateCancellationValidation(unittest.TestCase):
         qvm_graph = converter.convert(circuit)
         
         # Execute
-        executor = EnhancedExecutor()
+        executor = create_test_executor()
         counts = {}
         
         for _ in range(shots):

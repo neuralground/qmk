@@ -18,6 +18,7 @@ ROOT = Path(__file__).parent.parent.parent
 sys.path.insert(0, str(ROOT))
 
 from kernel.executor.enhanced_executor import EnhancedExecutor
+from tests.test_helpers import create_test_executor
 from qir.optimizer_integration import OptimizedExecutor, OptimizationLevel
 from qir.optimizer import PassManager, QIRCircuit
 from qir.optimizer.passes import (
@@ -77,11 +78,11 @@ class TestOptimizedPipeline(unittest.TestCase):
             if optimized:
                 # Use optimized executor
                 executor = OptimizedExecutor(
-                    EnhancedExecutor(),
+                    create_test_executor(),
                     OptimizationLevel.STANDARD
                 )
             else:
-                executor = EnhancedExecutor()
+                executor = create_test_executor()
             
             result = executor.execute(qvm_graph)
             events = result.get('events', {})
@@ -249,7 +250,7 @@ class TestOptimizedPipeline(unittest.TestCase):
         
         for level in levels:
             executor = OptimizedExecutor(
-                EnhancedExecutor(),
+                create_test_executor(),
                 level
             )
             result = executor.execute(qvm_graph)
@@ -272,7 +273,7 @@ class TestOptimizedPipeline(unittest.TestCase):
         results = []
         for _ in range(100):
             executor = OptimizedExecutor(
-                EnhancedExecutor(),
+                create_test_executor(),
                 OptimizationLevel.AGGRESSIVE
             )
             result = executor.execute(qvm_graph)

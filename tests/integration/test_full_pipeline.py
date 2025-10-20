@@ -18,6 +18,7 @@ ROOT = Path(__file__).parent.parent.parent
 sys.path.insert(0, str(ROOT))
 
 from kernel.executor.enhanced_executor import EnhancedExecutor
+from tests.test_helpers import create_test_executor
 from qir.optimizer_integration import OptimizedExecutor, OptimizationLevel
 from qir.translators.qiskit_to_qir import QiskitToQIRConverter
 from qir.translators.cirq_to_qir import CirqToQIRConverter
@@ -67,7 +68,7 @@ class TestFullPipeline(unittest.TestCase):
         """Execute QVM graph multiple times and collect counts."""
         counts = {}
         for _ in range(shots):
-            executor = EnhancedExecutor()
+            executor = create_test_executor()
             result = executor.execute(qvm_graph)
             events = result.get('events', {})
             
