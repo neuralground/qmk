@@ -111,6 +111,38 @@ class EnhancedExecutor:
         
         # Execution log
         self.execution_log: List = []
+        
+        # Store configuration for execution context
+        self.max_physical_qubits = max_physical_qubits
+        self.seed = seed
+        self.strict_verification = strict_verification
+    
+    def get_execution_context(self) -> Dict[str, Any]:
+        """
+        Get execution context information.
+        
+        Returns:
+            Dictionary with backend and configuration details
+        """
+        return {
+            "backend": "QMK Enhanced Executor",
+            "backend_version": "1.0.0",
+            "simulator": "Logical Qubit Simulator",
+            "qec_enabled": True,
+            "configuration": {
+                "max_physical_qubits": self.max_physical_qubits,
+                "deterministic": self.seed is not None,
+                "seed": self.seed,
+                "certification_required": self.require_certification,
+                "strict_verification": self.strict_verification,
+            },
+            "security_features": {
+                "entanglement_firewall": self.entanglement_firewall is not None,
+                "linear_type_system": self.linear_type_system is not None,
+                "capability_system": self.capability_system is not None,
+            },
+            "capabilities": list(self.caps.keys()) if self.caps else []
+        }
     
     def execute(self, qvm_graph: Dict[str, Any]) -> Dict[str, Any]:
         """
@@ -176,6 +208,7 @@ class EnhancedExecutor:
                     "physical_qubits": peak_usage["physical_qubits_used"],
                     "channels": peak_usage["channels_open"]
                 },
+                "execution_context": self.get_execution_context(),
                 "execution_log": self.execution_log,
             }
             

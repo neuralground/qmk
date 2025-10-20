@@ -70,8 +70,22 @@ def main():
         print(f"   Events: {result.get('events', {})}")
         print()
         
-        # Step 5: Get telemetry
-        print("5. Resource usage summary...")
+        # Step 5: Show execution context
+        context = result.get('execution_context', {})
+        if context:
+            print("5. Execution context...")
+            print(f"   Backend: {context.get('backend', 'Unknown')}")
+            print(f"   Simulator: {context.get('simulator', 'Unknown')}")
+            config = context.get('configuration', {})
+            if config:
+                print(f"   Configuration:")
+                print(f"      Max physical qubits: {config.get('max_physical_qubits', 'N/A')}")
+                print(f"      Deterministic: {config.get('deterministic', False)}")
+                print(f"      Certification: {config.get('certification_required', False)}")
+            print()
+        
+        # Step 6: Get telemetry
+        print("6. Resource usage summary...")
         telemetry = client.get_telemetry()
         
         # Show peak usage during execution
