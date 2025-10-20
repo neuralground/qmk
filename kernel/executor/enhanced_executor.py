@@ -167,6 +167,13 @@ class EnhancedExecutor:
             # Log successful certification
             self.execution_log.append(("CERTIFIED", "static_verification_passed"))
         
+        # Reset resource manager for fresh execution
+        self.resource_manager.reset()
+        self.events.clear()
+        self.execution_log.clear()
+        self.qubit_tenants.clear()
+        self.qubit_handles.clear()
+        
         # Parse graph
         if isinstance(qvm_graph, str):
             graph = json.loads(qvm_graph)

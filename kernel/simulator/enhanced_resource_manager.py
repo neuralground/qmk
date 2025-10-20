@@ -44,6 +44,19 @@ class EnhancedResourceManager:
         # Current simulation time
         self.current_time_us = 0.0
     
+    def reset(self):
+        """
+        Reset the resource manager to initial state.
+        
+        Clears all allocated qubits and channels. Useful for running
+        multiple independent jobs with the same manager.
+        """
+        self.logical_qubits.clear()
+        self.physical_qubits_used = 0
+        self.channels.clear()
+        self.current_time_us = 0.0
+        self.seed_counter = 0
+    
     def alloc_logical_qubits(self, vq_ids: List[str], profile: QECProfile) -> List[Tuple[str, int]]:
         """
         Allocate logical qubits with specified QEC profile.
