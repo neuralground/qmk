@@ -170,9 +170,11 @@ for iteration in range(n_iterations):
 
 ## **Remaining Examples**
 
-### **Not Yet Converted** (2 remaining)
-1. **shors_algorithm.py** - Shor's factoring algorithm
-2. **benchmark.py** - Performance testing
+### **Not Yet Converted** (2 remaining - Complex)
+1. **shors_algorithm.py** - Shor's factoring algorithm (very complex with QFT)
+2. **benchmark.py** - Performance testing (multiple circuits)
+
+**Note**: These examples are significantly more complex than the converted ones. Shor's algorithm includes a full Quantum Fourier Transform implementation with controlled rotations and SWAP networks. These can be converted using the same ASM pattern, but require more careful handling of the complex gate sequences.
 
 ### **Special Cases** (Keep as-is)
 - **adaptive_circuit.py** - Uses guards/conditionals (more complex)
