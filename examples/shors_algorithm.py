@@ -24,7 +24,13 @@ Example: Factor N=15 using a=7
 """
 
 import math
-from runtime.client import QSyscallClient
+import sys
+from pathlib import Path
+
+ROOT = Path(__file__).parent.parent
+sys.path.insert(0, str(ROOT))
+
+from runtime.client.qsyscall_client import QSyscallClient
 
 
 def gcd(a: int, b: int) -> int:

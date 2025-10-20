@@ -16,7 +16,13 @@ For n qubits (N=2^n items), optimal iterations ≈ π/4 * √N
 """
 
 import math
-from runtime.client import QSyscallClient
+import sys
+from pathlib import Path
+
+ROOT = Path(__file__).parent.parent
+sys.path.insert(0, str(ROOT))
+
+from runtime.client.qsyscall_client import QSyscallClient
 
 
 def create_grovers_circuit(target_state: str = "11", n_iterations: int = 1) -> dict:

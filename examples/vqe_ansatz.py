@@ -10,7 +10,13 @@ Demonstrates a variational quantum eigensolver (VQE) style circuit with:
 """
 
 import json
-from runtime.client import QSyscallClient
+import sys
+from pathlib import Path
+
+ROOT = Path(__file__).parent.parent
+sys.path.insert(0, str(ROOT))
+
+from runtime.client.qsyscall_client import QSyscallClient
 
 
 def create_vqe_ansatz(theta1: float, theta2: float, theta3: float) -> dict:

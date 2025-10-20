@@ -7,7 +7,13 @@ This example implements a simple quantum error correction scenario where
 measurements guide subsequent corrections.
 """
 
-from runtime.client import QSyscallClient
+import sys
+from pathlib import Path
+
+ROOT = Path(__file__).parent.parent
+sys.path.insert(0, str(ROOT))
+
+from runtime.client.qsyscall_client import QSyscallClient
 
 
 def create_adaptive_circuit() -> dict:

@@ -15,7 +15,13 @@ Quantum: Requires only 1 query!
 This implementation uses 2 input qubits (4 possible inputs).
 """
 
-from runtime.client import QSyscallClient
+import sys
+from pathlib import Path
+
+ROOT = Path(__file__).parent.parent
+sys.path.insert(0, str(ROOT))
+
+from runtime.client.qsyscall_client import QSyscallClient
 
 
 def create_deutsch_jozsa_circuit(oracle_type: str = "constant_0") -> dict:

@@ -7,7 +7,13 @@ Measures throughput and latency of the QMK system.
 
 import time
 import statistics
-from runtime.client import QSyscallClient
+import sys
+from pathlib import Path
+
+ROOT = Path(__file__).parent.parent
+sys.path.insert(0, str(ROOT))
+
+from runtime.client.qsyscall_client import QSyscallClient
 
 
 def create_simple_circuit(n_qubits: int) -> dict:

@@ -7,7 +7,14 @@ preparation circuit.
 """
 
 import json
-from runtime.client import QSyscallClient
+import sys
+from pathlib import Path
+
+# Add parent directory to path
+ROOT = Path(__file__).parent.parent
+sys.path.insert(0, str(ROOT))
+
+from runtime.client.qsyscall_client import QSyscallClient
 
 
 def main():
@@ -35,8 +42,8 @@ def main():
     with open("qvm/examples/bell_teleport_cnot.qvm.json") as f:
         graph = json.load(f)
     
-    print(f"   Nodes: {len(graph['nodes'])}")
-    print(f"   Edges: {len(graph['edges'])}")
+    print(f"   Nodes: {len(graph['program']['nodes'])}")
+    print(f"   Resources: {len(graph['resources']['vqs'])} qubits")
     print()
     
     # Step 3: Submit job

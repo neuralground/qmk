@@ -45,8 +45,17 @@ def handle_submit(params: Dict, session_manager, job_manager) -> Dict:
     if not isinstance(graph, dict):
         raise ValueError("'graph' must be a dictionary")
     
-    if "nodes" not in graph or "edges" not in graph:
-        raise ValueError("Graph must have 'nodes' and 'edges'")
+    # Support both old format (nodes/edges) and new QVM format (program/resources)
+    if "program" in graph:
+        # New QVM format
+        if "nodes" not in graph.get("program", {}):
+            raise ValueError("QVM graph must have 'program.nodes'")
+    elif "nodes" in graph:
+        # Old format (for backwards compatibility)
+        if "edges" not in graph:
+            raise ValueError("Graph must have 'nodes' and 'edges'")
+    else:
+        raise ValueError("Graph must have either 'program.nodes' (QVM format) or 'nodes'/'edges' (legacy format)")
     
     # Validate session
     session = session_manager.get_session(session_id)
@@ -82,14 +91,20 @@ def _extract_required_capabilities(graph: Dict) -> list:
     Extract required capabilities from graph operations.
     
     Args:
-        graph: QVM graph
+        graph: QVM graph (either QVM format or legacy format)
     
     Returns:
         List of required capabilities
     """
     required = set()
     
-    for node in graph.get("nodes", []):
+    # Get nodes from either format
+    if "program" in graph:
+        nodes = graph.get("program", {}).get("nodes", [])
+    else:
+        nodes = graph.get("nodes", [])
+    
+    for node in nodes:
         op = node.get("op", "")
         
         # Allocation operations
