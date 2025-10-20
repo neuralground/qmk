@@ -15,6 +15,12 @@ sys.path.insert(0, str(ROOT))
 
 from runtime.client.qsyscall_client import QSyscallClient
 
+# Import ASM runner
+try:
+    from asm_runner import assemble_file
+except ImportError:
+    from examples.asm_runner import assemble_file
+
 
 def create_adaptive_circuit() -> dict:
     """
@@ -113,157 +119,12 @@ def create_multi_round_adaptive() -> dict:
     """
     Create a more complex adaptive circuit with multiple measurement rounds.
     
-    Implements a 3-qubit repetition code with syndrome measurements.
+    Implements a 3-qubit repetition code with syndrome measurements using ASM.
     
     Returns:
         QVM graph dictionary
     """
-    return {
-        "version": "0.1",
-        "program": {
-            "nodes": [
-                # Allocate 3 data qubits + 2 ancilla qubits
-                {
-                    "id": "alloc",
-                    "op": "ALLOC_LQ",
-                    "args": {
-                        "n": 5,
-                        "profile": "logical:Surface(d=3)"
-                    },
-                    "vqs": ["d0", "d1", "d2", "a0", "a1"]
-                },
-            
-            # Encode logical |0⟩ in repetition code: |000⟩
-            # (Already in |000⟩ after allocation)
-            
-            # Round 1: Syndrome extraction
-            # Check d0 ⊕ d1
-            {
-                "id": "h_a0_r1",
-                "op": "APPLY_H",
-                "vqs": ["a0"]
-            },
-            {
-                "id": "cnot_d0_a0_r1",
-                "op": "APPLY_CNOT",
-                "vqs": ["d0", "a0"]
-            },
-            {
-                "id": "cnot_d1_a0_r1",
-                "op": "APPLY_CNOT",
-                "vqs": ["d1", "a0"]
-            },
-            {
-                "id": "h_a0_r1_end",
-                "op": "APPLY_H",
-                "vqs": ["a0"]
-            },
-            {
-                "id": "syndrome_01_r1",
-                "op": "MEASURE_Z",
-                "vqs": ["a0"],
-                "produces": ["s01_r1"]
-            },
-            
-            # Check d1 ⊕ d2
-            {
-                "id": "h_a1_r1",
-                "op": "APPLY_H",
-                "vqs": ["a1"]
-            },
-            {
-                "id": "cnot_d1_a1_r1",
-                "op": "APPLY_CNOT",
-                "vqs": ["d1", "a1"]
-            },
-            {
-                "id": "cnot_d2_a1_r1",
-                "op": "APPLY_CNOT",
-                "vqs": ["d2", "a1"]
-            },
-            {
-                "id": "h_a1_r1_end",
-                "op": "APPLY_H",
-                "vqs": ["a1"]
-            },
-            {
-                "id": "syndrome_12_r1",
-                "op": "MEASURE_Z",
-                "vqs": ["a1"],
-                "produces": ["s12_r1"]
-            },
-            
-            # Corrections based on syndrome
-            # If s01_r1 == 1 and s12_r1 == 0: error on d0
-            {
-                "id": "correct_d0",
-                "op": "APPLY_X",
-                "vqs": ["d0"],
-                "guard": {
-                    "type": "and",
-                    "conditions": [
-                        {"type": "eq", "event": "s01_r1", "value": 1},
-                        {"type": "eq", "event": "s12_r1", "value": 0}
-                    ]
-                }
-            },
-            
-            # If s01_r1 == 1 and s12_r1 == 1: error on d1
-            {
-                "id": "correct_d1",
-                "op": "APPLY_X",
-                "vqs": ["d1"],
-                "guard": {
-                    "type": "and",
-                    "conditions": [
-                        {"type": "eq", "event": "s01_r1", "value": 1},
-                        {"type": "eq", "event": "s12_r1", "value": 1}
-                    ]
-                }
-            },
-            
-            # If s01_r1 == 0 and s12_r1 == 1: error on d2
-            {
-                "id": "correct_d2",
-                "op": "APPLY_X",
-                "vqs": ["d2"],
-                "guard": {
-                    "type": "and",
-                    "conditions": [
-                        {"type": "eq", "event": "s01_r1", "value": 0},
-                        {"type": "eq", "event": "s12_r1", "value": 1}
-                    ]
-                }
-            },
-            
-            # Final measurements
-            {
-                "id": "measure_d0",
-                "op": "MEASURE_Z",
-                "vqs": ["d0"],
-                "produces": ["m_d0"]
-            },
-            {
-                "id": "measure_d1",
-                "op": "MEASURE_Z",
-                "vqs": ["d1"],
-                "produces": ["m_d1"]
-            },
-            {
-                "id": "measure_d2",
-                "op": "MEASURE_Z",
-                "vqs": ["d2"],
-                "produces": ["m_d2"]
-            },
-            
-            ]
-        },
-        "resources": {
-            "vqs": ["d0", "d1", "d2", "a0", "a1"],
-            "chs": [],
-            "events": ["s01_r1", "s12_r1", "m_d0", "m_d1", "m_d2"]
-        }
-    }
+    return assemble_file("adaptive_multi_round.qvm.asm")
 
 
 def main():

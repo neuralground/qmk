@@ -3,10 +3,9 @@
 Simple Bell State Example
 
 Demonstrates using the QMK client library to submit and execute a Bell state
-preparation circuit.
+preparation circuit using QVM Assembly.
 """
 
-import json
 import sys
 from pathlib import Path
 
@@ -15,6 +14,12 @@ ROOT = Path(__file__).parent.parent
 sys.path.insert(0, str(ROOT))
 
 from runtime.client.qsyscall_client import QSyscallClient
+
+# Import ASM runner
+try:
+    from asm_runner import assemble_file
+except ImportError:
+    from examples.asm_runner import assemble_file
 
 
 def main():
@@ -38,10 +43,9 @@ def main():
     print(f"   Denied: {caps_result['denied']}")
     print()
     
-    # Step 2: Load Bell state graph
-    print("2. Loading Bell state graph...")
-    with open("qvm/examples/bell_teleport_cnot.qvm.json") as f:
-        graph = json.load(f)
+    # Step 2: Load Bell state circuit from ASM
+    print("2. Loading Bell state circuit from ASM...")
+    graph = assemble_file("bell_state.qvm.asm")
     
     print(f"   Nodes: {len(graph['program']['nodes'])}")
     print(f"   Resources: {len(graph['resources']['vqs'])} qubits")
