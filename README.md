@@ -52,93 +52,65 @@ python examples/benchmark.py
 
 See **[Getting Started Guide](docs/GETTING_STARTED.md)** for detailed instructions.
 
-## Documentation Index
+## Documentation
 
-### 📖 Getting Started (Read in Order)
+📖 **[Complete Documentation Index](docs/INDEX.md)** — Full documentation organized by domain
 
-1. **[Overview](docs/overview.md)** — High-level introduction to QMK
-2. **[Installation Guide](docs/INSTALLATION.md)** ⭐ — **Complete installation guide** (Qiskit, Cirq, Q#)
-3. **[Getting Started Guide](docs/GETTING_STARTED.md)** — Quick start and basic usage
-4. **[Pipeline Guide](docs/PIPELINE_GUIDE.md)** 🔥 — **Full pipeline documentation** (NEW!)
-5. **[Optimizer Guide](docs/OPTIMIZER_GUIDE.md)** 🔥 — **Circuit optimization guide** (NEW!)
-6. **[Tutorial](docs/TUTORIAL.md)** — Step-by-step guide to building quantum applications
-7. **[Quick Reference](docs/QUICK_REFERENCE.md)** — Fast reference for common operations
-8. **[Design & Architecture](docs/design-architecture-spec.md)** — System architecture and goals
-9. **[QVM Specification](docs/QVM-spec.md)** ⭐ — **Complete QVM specification** (primary reference)
-   - Introduction and design principles
-   - Resource handles (VQ, CH, EV, CAP, BND)
-   - Graph structure and format
-   - Verification rules (linearity, capabilities, DAG)
-   - Execution semantics and reversibility
-   - Security model and conformance
-   - Future extensions
-7. **[QVM Instruction Reference](docs/QVM-instruction-reference.md)** — Detailed opcode documentation
-   - All 20 operations with examples
-   - Capability requirements
-   - Reversibility classification
-8. **[QVM Assembly Language](docs/QVM-ASSEMBLY.md)** — Human-readable assembly format
-   - Simpler syntax than JSON
-   - Full round-trip conversion
-   - Assembler and disassembler tools
+### Quick Start
 
-### 🔧 Technical Deep Dives
+1. **[Installation Guide](docs/INSTALLATION.md)** ⭐ — Install QMK and dependencies
+2. **[Getting Started](docs/GETTING_STARTED.md)** — Quick start and first examples
+3. **[Tutorial](docs/TUTORIAL.md)** — Step-by-step guide
+4. **[Quick Reference](docs/QUICK_REFERENCE.md)** — Fast reference
 
-- **[Architecture](docs/architecture.md)** — Layered architecture details
-- **[qSyscall ABI](docs/qsyscall-abi.md)** — User ↔ Kernel interface
-- **[Security Model](docs/security-model.md)** — Capability security and isolation
-- **[Reversibility](docs/reversibility.md)** — REV segments and uncomputation
-- **[Scheduling](docs/scheduling.md)** — Epoch-based scheduling model
-- **[Azure QRE Compatibility](docs/AZURE_QRE_COMPATIBILITY.md)** — Integration with Azure Quantum Resource Estimator
-- **[Testing](docs/testing.md)** — Testing strategy
+### Documentation by Domain
 
-### 💻 Examples & Tools
+#### 🔷 QIR Domain (Circuit Optimization)
+- **[Optimization Passes](docs/qir/QIR_OPTIMIZATION_PASSES.md)** ⭐ — 17 passes, 18+ papers cited
+- **[Optimizer Guide](docs/qir/OPTIMIZER_GUIDE.md)** — How to use the optimizer
+- **[Pipeline Guide](docs/qir/PIPELINE_GUIDE.md)** — Full QIR pipeline
+- **[QIR Domain Overview](docs/qir/QIR_DOMAIN.md)** — Architecture and design
 
-- **[Python Examples](examples/README.md)** — Working examples using the client library
-  - Bell states, VQE ansatz, multi-qubit entanglement
-  - Adaptive circuits with guards
-  - Classic algorithms (Grover's, Shor's, Deutsch-Jozsa)
-  - Performance benchmarking
-- **[QIR Examples](qir_examples/README.md)** — External front-end integration
-  - Q# programs compiled to QIR
-  - Qiskit circuits exported to QIR
-  - Cirq circuits exported to QIR
-  - End-to-end QIR → QVM → Execution workflow
-- **[QVM Example Programs](qvm/examples/README.md)** — QVM graph format examples
-  - `bell_teleport_cnot.qvm.json` — Bell state preparation
-  - `teleportation_demo.qvm.json` — Full quantum teleportation protocol
-  - `ghz_state.qvm.json` — 4-qubit GHZ state
-  - `conditional_correction.qvm.json` — Measurement-based control flow
-  - `reversible_segment.qvm.json` — REV segment demonstration
-- **[JSON Schema](qvm/qvm_schema.json)** — Canonical QVM format schema
-- **[Validator Tool](qvm/tools/qvm_validate.py)** — Graph validation with linearity checks
-- **[Assembler](qvm/tools/qvm_asm.py)** — Convert assembly to JSON
-- **[Disassembler](qvm/tools/qvm_disasm.py)** — Convert JSON to assembly
+#### 🔶 QVM Domain (Virtual Machine)
+- **[QVM Specification](docs/qvm/SPECIFICATION.md)** ⭐ — Complete specification
+- **[Instruction Reference](docs/qvm/INSTRUCTION_REFERENCE.md)** — All 20 operations
+- **[Assembly Language](docs/qvm/ASSEMBLY_LANGUAGE.md)** — Human-readable format
+- **[Measurement Bases](docs/qvm/MEASUREMENT_BASES.md)** — Measurement documentation
 
-### 📚 Reference Materials
+#### 🔷 QMK Domain (Microkernel)
+- **[Architecture](docs/qmk/ARCHITECTURE.md)** — System architecture
+- **[Design Specification](docs/qmk/DESIGN_SPEC.md)** — Design and goals
+- **[qSyscall ABI](docs/qmk/QSYSCALL_ABI.md)** — User ↔ Kernel interface
+- **[Reversibility](docs/qmk/REVERSIBILITY.md)** — REV segments
+- **[Scheduling](docs/qmk/SCHEDULING.md)** — Scheduling model
 
-**Suggested Reading Order for New Contributors:**
-1. Start with [Overview](docs/overview.md) for high-level context
-2. Follow the [Getting Started Guide](docs/GETTING_STARTED.md) to run your first example
-3. Work through the [Tutorial](docs/TUTORIAL.md) to build quantum applications
-4. Read [Design & Architecture](docs/design-architecture-spec.md) for system architecture
-5. Study [QVM Specification](docs/QVM-spec.md) for complete technical details
-6. Explore [Python Examples](examples/README.md) and [QVM Examples](qvm/examples/README.md)
-7. Consult [Instruction Reference](docs/QVM-instruction-reference.md) and [Quick Reference](docs/QUICK_REFERENCE.md) as needed
-8. Deep dive into specific topics ([Security](docs/security-model.md), [Scheduling](docs/scheduling.md), [qSyscall ABI](docs/qsyscall-abi.md), etc.) as relevant
+#### 🛡️ Security Domain
+- **[Security Model](docs/security/SECURITY_MODEL.md)** ⭐ — Complete security architecture
+- **[Capability System](docs/security/CAPABILITY_SYSTEM.md)** — Cryptographic tokens
+- **[Multi-Tenant Security](docs/security/MULTI_TENANT_SECURITY.md)** — Tenant isolation
+- **[Implementation Summary](docs/security/IMPLEMENTATION_SUMMARY.md)** — Phase 1-3 complete
+
+### Examples & Tools
+
+- **[Python Examples](examples/README.md)** — Client library examples
+- **[QIR Examples](qir_examples/README.md)** — Multi-framework integration
+- **[QVM Examples](qvm/examples/README.md)** — QVM graph examples
+- **[Tools](qvm/tools/)** — Validator, assembler, disassembler
 
 ## Current Status
 
 **🎉 NEW: Complete Quantum Circuit Optimizer!**
-- ✅ **14 optimization passes** across 5 phases
+- ✅ **17 optimization passes** (12 standard + 5 experimental)
 - ✅ **30-80% gate reduction** in real circuits
 - ✅ **70% T-count reduction** for fault-tolerant circuits
 - ✅ **Multi-framework support** (Qiskit, Cirq, Q#)
 - ✅ **Full QIR pipeline** (validated end-to-end)
 - ✅ **30 quantum algorithms** (10 per framework)
 - ✅ **Topology-aware routing** (IBM, Google, custom)
+- ✅ **Cutting-edge experimental passes** (ZX-calculus, phase polynomials, etc.)
 
 **Implemented Features:**
-- **Quantum Circuit Optimizer** (14 passes, 5 optimization levels)
+- **Quantum Circuit Optimizer** (17 passes: 12 standard + 5 experimental)
 - **QIR Converters** (Qiskit, Cirq to QIR and QVM)
 - **Algorithm Library** (30 algorithms: Bell, GHZ, Grover, QFT, etc.)
 - Comprehensive QVM specification with 20 documented operations
