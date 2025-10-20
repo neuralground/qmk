@@ -294,20 +294,29 @@ class MacroPreprocessor:
     
     def _evaluate_iterable(self, expr: str) -> List[Any]:
         """Evaluate an iterable expression."""
-        # Handle range syntax: 0..n-1
+        # Handle range syntax: 0..n-1, start..end
         if '..' in expr:
-            match = re.match(r'(\d+|[\w\+\-\*/]+)\.\.(\d+|[\w\+\-\*/]+)', expr)
-            if match:
+            parts = expr.split('..')
+            if len(parts) == 2:
                 try:
-                    start = eval(match.group(1), {"__builtins__": {}}, self.variables)
-                    end = eval(match.group(2), {"__builtins__": {}}, self.variables)
+                    # Evaluate start and end expressions
+                    start_expr = parts[0].strip()
+                    end_expr = parts[1].strip()
+                    
+                    # Create safe eval context with variables and params
+                    eval_context = {**self.variables, **self.params}
+                    
+                    start = eval(start_expr, {"__builtins__": {}}, eval_context)
+                    end = eval(end_expr, {"__builtins__": {}}, eval_context)
                     return list(range(int(start), int(end) + 1))
-                except:
+                except Exception as e:
+                    # If evaluation fails, return empty list
                     pass
         
         # Handle list literals or variable references
         try:
-            return eval(expr, {"__builtins__": {}, "range": range}, self.variables)
+            eval_context = {**self.variables, **self.params}
+            return eval(expr, {"__builtins__": {}, "range": range}, eval_context)
         except:
             return []
     
