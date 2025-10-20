@@ -23,11 +23,12 @@ ROOT = Path(__file__).parent.parent
 sys.path.insert(0, str(ROOT))
 
 from runtime.client.qsyscall_client import QSyscallClient
+from qvm.tools.qvm_asm import assemble
 
 
 def create_grovers_circuit(target_state: str = "11", n_iterations: int = 1) -> dict:
     """
-    Create Grover's search circuit for 2 qubits.
+    Create Grover's search circuit for 2 qubits using QVM assembly.
     
     Args:
         target_state: Binary string of target state (e.g., "11" for |11⟩)
@@ -39,223 +40,70 @@ def create_grovers_circuit(target_state: str = "11", n_iterations: int = 1) -> d
     if len(target_state) != 2 or not all(c in '01' for c in target_state):
         raise ValueError("target_state must be 2-bit binary string")
     
-    nodes = [
-        # Allocate 2 qubits
-        {
-            "id": "alloc",
-            "op": "ALLOC_LQ",
-            "outputs": ["q0", "q1"],
-            "profile": "logical:surface_code(d=3)"
-        },
-        
-        # Initialize in equal superposition |+⟩|+⟩
-        {
-            "id": "h0_init",
-            "op": "H",
-            "qubits": ["q0"],
-            "deps": ["alloc"]
-        },
-        {
-            "id": "h1_init",
-            "op": "H",
-            "qubits": ["q1"],
-            "deps": ["alloc"]
-        }
+    # Build ASM program
+    asm_lines = [
+        ".version 0.1",
+        ".caps CAP_ALLOC CAP_COMPUTE CAP_MEASURE",
+        "",
+        f"; Grover's Search for |{target_state}\u27e9",
+        "; Algorithm: Superposition \u2192 Grover Iterations \u2192 Measure",
+        "",
+        "alloc: ALLOC_LQ n=2, profile=\"logical:Surface(d=3)\" -> q0, q1",
+        "",
+        "; Initialize in equal superposition",
+        "h0_init: APPLY_H q0",
+        "h1_init: APPLY_H q1",
     ]
     
-    prev_nodes = ["h0_init", "h1_init"]
-    
-    # Apply Grover iterations
+    # Generate Grover iterations
     for iteration in range(n_iterations):
-        iter_prefix = f"iter{iteration}"
+        asm_lines.append(f"")
+        asm_lines.append(f"; === Grover Iteration {iteration+1} ===")
         
-        # === Oracle: Mark the target state ===
-        # We need to flip the phase of the target state
-        # This is done by applying X gates to flip bits that should be 0,
-        # then a controlled-Z, then flip back
+        # Oracle: Mark target state
+        asm_lines.append(f"; Oracle: Mark |{target_state}\u27e9")
         
-        oracle_deps = prev_nodes.copy()
-        
-        # Flip bits that should be 0 in target
+        # Flip bits that should be 0
         if target_state[0] == '0':
-            nodes.append({
-                "id": f"{iter_prefix}_oracle_x0",
-                "op": "X",
-                "qubits": ["q0"],
-                "deps": oracle_deps
-            })
-            oracle_deps = [f"{iter_prefix}_oracle_x0"]
-        
+            asm_lines.append(f"i{iteration}_ox0: APPLY_X q0")
         if target_state[1] == '0':
-            nodes.append({
-                "id": f"{iter_prefix}_oracle_x1",
-                "op": "X",
-                "qubits": ["q1"],
-                "deps": oracle_deps
-            })
-            oracle_deps = [f"{iter_prefix}_oracle_x1"]
+            asm_lines.append(f"i{iteration}_ox1: APPLY_X q1")
         
-        # Apply controlled-Z (mark the state)
-        # CZ = H on target, CNOT, H on target
-        nodes.append({
-            "id": f"{iter_prefix}_oracle_h",
-            "op": "H",
-            "qubits": ["q1"],
-            "deps": oracle_deps
-        })
-        
-        nodes.append({
-            "id": f"{iter_prefix}_oracle_cnot",
-            "op": "CNOT",
-            "qubits": ["q0", "q1"],
-            "deps": [f"{iter_prefix}_oracle_h"]
-        })
-        
-        nodes.append({
-            "id": f"{iter_prefix}_oracle_h2",
-            "op": "H",
-            "qubits": ["q1"],
-            "deps": [f"{iter_prefix}_oracle_cnot"]
-        })
+        # Controlled-Z (mark the state)
+        asm_lines.append(f"i{iteration}_oh: APPLY_H q1")
+        asm_lines.append(f"i{iteration}_ocnot: APPLY_CNOT q0, q1")
+        asm_lines.append(f"i{iteration}_oh2: APPLY_H q1")
         
         # Flip back
-        unflip_deps = [f"{iter_prefix}_oracle_h2"]
-        
         if target_state[1] == '0':
-            nodes.append({
-                "id": f"{iter_prefix}_oracle_unx1",
-                "op": "X",
-                "qubits": ["q1"],
-                "deps": unflip_deps
-            })
-            unflip_deps = [f"{iter_prefix}_oracle_unx1"]
-        
+            asm_lines.append(f"i{iteration}_oux1: APPLY_X q1")
         if target_state[0] == '0':
-            nodes.append({
-                "id": f"{iter_prefix}_oracle_unx0",
-                "op": "X",
-                "qubits": ["q0"],
-                "deps": unflip_deps
-            })
-            unflip_deps = [f"{iter_prefix}_oracle_unx0"]
+            asm_lines.append(f"i{iteration}_oux0: APPLY_X q0")
         
-        # === Diffusion Operator (Inversion about average) ===
-        # H - X - CZ - X - H on all qubits
-        
-        # Apply H
-        nodes.append({
-            "id": f"{iter_prefix}_diff_h0",
-            "op": "H",
-            "qubits": ["q0"],
-            "deps": unflip_deps
-        })
-        nodes.append({
-            "id": f"{iter_prefix}_diff_h1",
-            "op": "H",
-            "qubits": ["q1"],
-            "deps": unflip_deps
-        })
-        
-        # Apply X
-        nodes.append({
-            "id": f"{iter_prefix}_diff_x0",
-            "op": "X",
-            "qubits": ["q0"],
-            "deps": [f"{iter_prefix}_diff_h0"]
-        })
-        nodes.append({
-            "id": f"{iter_prefix}_diff_x1",
-            "op": "X",
-            "qubits": ["q1"],
-            "deps": [f"{iter_prefix}_diff_h1"]
-        })
-        
-        # Apply CZ
-        nodes.append({
-            "id": f"{iter_prefix}_diff_h_cz",
-            "op": "H",
-            "qubits": ["q1"],
-            "deps": [f"{iter_prefix}_diff_x1"]
-        })
-        
-        nodes.append({
-            "id": f"{iter_prefix}_diff_cnot",
-            "op": "CNOT",
-            "qubits": ["q0", "q1"],
-            "deps": [f"{iter_prefix}_diff_h_cz", f"{iter_prefix}_diff_x0"]
-        })
-        
-        nodes.append({
-            "id": f"{iter_prefix}_diff_h_cz2",
-            "op": "H",
-            "qubits": ["q1"],
-            "deps": [f"{iter_prefix}_diff_cnot"]
-        })
-        
-        # Apply X again
-        nodes.append({
-            "id": f"{iter_prefix}_diff_x0_2",
-            "op": "X",
-            "qubits": ["q0"],
-            "deps": [f"{iter_prefix}_diff_cnot"]
-        })
-        nodes.append({
-            "id": f"{iter_prefix}_diff_x1_2",
-            "op": "X",
-            "qubits": ["q1"],
-            "deps": [f"{iter_prefix}_diff_h_cz2"]
-        })
-        
-        # Apply H again
-        nodes.append({
-            "id": f"{iter_prefix}_diff_h0_2",
-            "op": "H",
-            "qubits": ["q0"],
-            "deps": [f"{iter_prefix}_diff_x0_2"]
-        })
-        nodes.append({
-            "id": f"{iter_prefix}_diff_h1_2",
-            "op": "H",
-            "qubits": ["q1"],
-            "deps": [f"{iter_prefix}_diff_x1_2"]
-        })
-        
-        prev_nodes = [f"{iter_prefix}_diff_h0_2", f"{iter_prefix}_diff_h1_2"]
+        # Diffusion operator (inversion about average)
+        asm_lines.append(f"; Diffusion: Invert about average")
+        asm_lines.append(f"i{iteration}_dh0: APPLY_H q0")
+        asm_lines.append(f"i{iteration}_dh1: APPLY_H q1")
+        asm_lines.append(f"i{iteration}_dx0: APPLY_X q0")
+        asm_lines.append(f"i{iteration}_dx1: APPLY_X q1")
+        asm_lines.append(f"i{iteration}_dh_cz: APPLY_H q1")
+        asm_lines.append(f"i{iteration}_dcnot: APPLY_CNOT q0, q1")
+        asm_lines.append(f"i{iteration}_dh_cz2: APPLY_H q1")
+        asm_lines.append(f"i{iteration}_dx0_2: APPLY_X q0")
+        asm_lines.append(f"i{iteration}_dx1_2: APPLY_X q1")
+        asm_lines.append(f"i{iteration}_dh0_2: APPLY_H q0")
+        asm_lines.append(f"i{iteration}_dh1_2: APPLY_H q1")
     
-    # Measure both qubits
-    nodes.append({
-        "id": "measure_q0",
-        "op": "MEASURE_Z",
-        "qubits": ["q0"],
-        "outputs": ["m0"],
-        "deps": prev_nodes
-    })
+    # Measurements
+    asm_lines.append("")
+    asm_lines.append("; Measure to find target")
+    asm_lines.append("m0: MEASURE_Z q0 -> m0")
+    asm_lines.append("m1: MEASURE_Z q1 -> m1")
     
-    nodes.append({
-        "id": "measure_q1",
-        "op": "MEASURE_Z",
-        "qubits": ["q1"],
-        "outputs": ["m1"],
-        "deps": prev_nodes
-    })
-    
-    # Free qubits
-    nodes.append({
-        "id": "free",
-        "op": "FREE_LQ",
-        "qubits": ["q0", "q1"],
-        "deps": ["measure_q0", "measure_q1"]
-    })
-    
-    return {
-        "version": "0.1",
-        "metadata": {
-            "name": f"grovers_search_{target_state}",
-            "description": f"Grover's algorithm searching for |{target_state}⟩"
-        },
-        "nodes": nodes,
-        "edges": []
-    }
+    asm = "\\n".join(asm_lines) + "\\n"
+    return assemble(asm)
+
+
 
 
 def run_grovers_search(client: QSyscallClient, target: str, shots: int = 100):
@@ -363,8 +211,13 @@ def main():
     
     # Negotiate capabilities
     print("Negotiating capabilities...")
-    caps_result = client.negotiate_capabilities(["CAP_ALLOC"])
-    print(f"Session ID: {caps_result['session_id']}\n")
+    caps_result = client.negotiate_capabilities([
+        "CAP_ALLOC",
+        "CAP_COMPUTE",
+        "CAP_MEASURE"
+    ])
+    print(f"Session ID: {caps_result['session_id']}")
+    print(f"Granted: {caps_result.get('granted', [])}\n")
     
     # Search for each possible state
     targets = ["00", "01", "10", "11"]
