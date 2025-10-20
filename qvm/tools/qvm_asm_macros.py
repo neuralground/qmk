@@ -3,19 +3,28 @@
 QVM Assembly Macro Preprocessor
 
 Supports:
+- .param external parameter definitions
 - .for loops with range and list iteration
-- .if/.else/.endif conditionals
+- .if/.elif/.else/.endif conditionals
 - .set variable definitions
 - .macro/.endmacro definitions
 - Variable substitution with {var}
 - .include file inclusion
+- String operations (comparison, indexing)
 
 Example:
+    .param oracle_type = "balanced_x0"
     .set n_qubits = 4
     
     .for i in 0..n_qubits-1
         h{i}: APPLY_H q{i}
     .endfor
+    
+    .if oracle_type == "constant_0"
+        ; Do nothing
+    .elif oracle_type == "balanced_x0"
+        oracle: APPLY_CNOT x0, y
+    .endif
     
     .macro BELL_PAIR(q0, q1)
         h: APPLY_H {q0}
@@ -34,8 +43,15 @@ from pathlib import Path
 class MacroPreprocessor:
     """Preprocessor for QVM assembly macros."""
     
-    def __init__(self):
+    def __init__(self, params: Optional[Dict[str, Any]] = None):
+        """
+        Initialize preprocessor.
+        
+        Args:
+            params: External parameters to override .param defaults
+        """
         self.variables = {}
+        self.params = params or {}  # External parameters
         self.macros = {}
         self.include_paths = [Path("."), Path(__file__).parent.parent / "asm"]
         
@@ -58,10 +74,13 @@ class MacroPreprocessor:
         # Phase 1: Process .include directives
         lines = self._process_includes(lines)
         
-        # Phase 2: Parse .macro definitions (remove from output)
+        # Phase 2: Process .param directives (set defaults, override with external params)
+        lines = self._process_params(lines)
+        
+        # Phase 3: Parse .macro definitions (remove from output)
         lines = self._parse_macros(lines)
         
-        # Phase 3: Process .set directives and expand variables
+        # Phase 4: Process .set directives and expand variables
         lines = self._process_variables(lines)
         
         # Phase 4: Process .for loops
@@ -100,6 +119,40 @@ class MacroPreprocessor:
                             break
                     else:
                         raise FileNotFoundError(f"Include file not found: {filename}")
+            else:
+                result.append(line)
+        return result
+    
+    def _process_params(self, lines: List[str]) -> List[str]:
+        """
+        Process .param directives.
+        
+        .param sets default values that can be overridden by external params.
+        External params take precedence over .param defaults.
+        """
+        result = []
+        for line in lines:
+            stripped = line.strip()
+            if stripped.startswith('.param'):
+                # Parse: .param name = value
+                match = re.match(r'\.param\s+(\w+)\s*=\s*(.+)', stripped)
+                if match:
+                    param_name = match.group(1)
+                    param_value = match.group(2).strip()
+                    
+                    # Only set if not overridden by external params
+                    if param_name not in self.params:
+                        # Evaluate the value
+                        try:
+                            # Try to evaluate as Python literal
+                            self.variables[param_name] = eval(param_value, {"__builtins__": {}, "pi": math.pi, "math": math}, self.variables)
+                        except:
+                            # Keep as string if evaluation fails
+                            self.variables[param_name] = param_value
+                    else:
+                        # Use external parameter value
+                        self.variables[param_name] = self.params[param_name]
+                # Don't include .param lines in output
             else:
                 result.append(line)
         return result
@@ -254,7 +307,7 @@ class MacroPreprocessor:
             return []
     
     def _process_conditionals(self, lines: List[str]) -> List[str]:
-        """Process .if/.else/.endif conditionals."""
+        """Process .if/.elif/.else/.endif conditionals with string operations."""
         result = []
         i = 0
         while i < len(lines):
@@ -265,47 +318,83 @@ class MacroPreprocessor:
                 if match:
                     condition = match.group(1).strip()
                     
-                    # Collect if body
-                    if_body = []
-                    else_body = []
+                    # Collect branches: [(condition, body), ...]
+                    branches = [(condition, [])]
+                    current_branch = 0
                     i += 1
                     depth = 1
-                    in_else = False
                     
                     while i < len(lines) and depth > 0:
                         line_stripped = lines[i].strip()
                         if line_stripped.startswith('.if'):
                             depth += 1
+                            branches[current_branch][1].append(lines[i])
+                        elif line_stripped.startswith('.elif') and depth == 1:
+                            # Start new elif branch
+                            elif_match = re.match(r'\.elif\s+(.+)', line_stripped)
+                            if elif_match:
+                                branches.append((elif_match.group(1).strip(), []))
+                                current_branch += 1
+                            i += 1
+                            continue
                         elif line_stripped.startswith('.else') and depth == 1:
-                            in_else = True
+                            # Start else branch (condition is always True)
+                            branches.append((None, []))
+                            current_branch += 1
                             i += 1
                             continue
                         elif line_stripped.startswith('.endif'):
                             depth -= 1
                             if depth == 0:
                                 break
-                        
-                        if in_else:
-                            else_body.append(lines[i])
+                            branches[current_branch][1].append(lines[i])
                         else:
-                            if_body.append(lines[i])
+                            branches[current_branch][1].append(lines[i])
                         i += 1
                     
-                    # Evaluate condition
-                    try:
-                        condition_result = eval(condition, {"__builtins__": {}}, self.variables)
-                        if condition_result:
-                            result.extend(self._process_conditionals(if_body))
+                    # Evaluate conditions in order, execute first true branch
+                    executed = False
+                    for cond, body in branches:
+                        if cond is None:  # .else branch
+                            result.extend(self._process_conditionals(body))
+                            executed = True
+                            break
                         else:
-                            result.extend(self._process_conditionals(else_body))
-                    except:
-                        # If evaluation fails, include if body by default
-                        result.extend(self._process_conditionals(if_body))
+                            try:
+                                # Enhanced condition evaluation with string operations
+                                condition_result = self._evaluate_condition(cond)
+                                if condition_result:
+                                    result.extend(self._process_conditionals(body))
+                                    executed = True
+                                    break
+                            except Exception as e:
+                                # If evaluation fails, skip this branch
+                                continue
+                    
                 i += 1
             else:
                 result.append(lines[i])
                 i += 1
         return result
+    
+    def _evaluate_condition(self, condition: str) -> bool:
+        """
+        Evaluate a condition with support for string operations.
+        
+        Supports:
+        - String comparison: oracle_type == "constant_0"
+        - String indexing: target_state[0] == '0'
+        - Numeric comparison: i < n
+        - Boolean operations: and, or, not
+        """
+        # First substitute variables
+        condition = self._substitute_variables([condition])[0]
+        
+        # Evaluate with Python eval (safe subset)
+        try:
+            return eval(condition, {"__builtins__": {}}, self.variables)
+        except:
+            return False
     
     def _expand_macro_calls(self, lines: List[str]) -> List[str]:
         """Expand macro calls."""
@@ -363,16 +452,17 @@ class MacroPreprocessor:
         return result
 
 
-def preprocess(assembly: str, filename: Optional[str] = None) -> str:
+def preprocess(assembly: str, filename: Optional[str] = None, params: Optional[Dict[str, Any]] = None) -> str:
     """
     Preprocess QVM assembly with macro expansion.
     
     Args:
         assembly: Raw assembly code
         filename: Optional filename for .include resolution
+        params: Optional external parameters to override .param defaults
         
     Returns:
         Expanded assembly code
     """
-    preprocessor = MacroPreprocessor()
+    preprocessor = MacroPreprocessor(params)
     return preprocessor.preprocess(assembly, filename)

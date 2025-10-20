@@ -302,19 +302,20 @@ class AssemblyParser:
         return qvm
 
 
-def assemble(assembly: str, filename: Optional[str] = None) -> Dict[str, Any]:
+def assemble(assembly: str, filename: Optional[str] = None, params: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
     """
     Assemble QVM assembly to JSON with macro preprocessing.
     
     Args:
         assembly: Raw assembly code (may contain macros)
         filename: Optional filename for .include resolution
+        params: Optional external parameters to override .param defaults
         
     Returns:
         QVM JSON graph
     """
-    # Phase 1: Preprocess macros
-    expanded = preprocess_macros(assembly, filename)
+    # Phase 1: Preprocess macros with parameters
+    expanded = preprocess_macros(assembly, filename, params)
     
     # Phase 2: Parse expanded assembly
     parser = AssemblyParser()

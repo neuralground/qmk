@@ -69,13 +69,22 @@ def assemble_file(filename: str, params: Optional[Dict[str, Any]] = None) -> Dic
     
     Args:
         filename: Path to .qvm.asm file
-        params: Dictionary of parameters to substitute
+        params: Dictionary of parameters to pass to assembler (.param overrides)
         
     Returns:
         QVM JSON graph
     """
-    asm = load_asm_file(filename, params)
-    return assemble(asm)
+    asm_dir = Path(__file__).parent / "asm"
+    filepath = asm_dir / filename
+    
+    if not filepath.exists():
+        raise FileNotFoundError(f"ASM file not found: {filepath}")
+    
+    with open(filepath, 'r') as f:
+        asm = f.read()
+    
+    # Assemble with parameters (no need for .set injection, use .param in ASM)
+    return assemble(asm, str(filepath), params)
 
 
 def execute_asm_file(
