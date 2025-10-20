@@ -7,11 +7,9 @@
 .version 0.1
 .caps CAP_ALLOC CAP_COMPUTE CAP_MEASURE
 
-; Generate qubit list
-.set qubit_list = [f"q{i}" for i in range(n_qubits)]
-
 ; Allocate qubits
-alloc: ALLOC_LQ n={n_qubits}, profile="logical:Surface(d=3)" -> {", ".join(qubit_list)}
+; Note: qubit_outputs should be set by Python as comma-separated string
+alloc: ALLOC_LQ n={n_qubits}, profile="logical:Surface(d=3)" -> {qubit_outputs}
 
 ; Create GHZ state
 ; Step 1: Put first qubit in superposition

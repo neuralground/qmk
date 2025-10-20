@@ -7,21 +7,20 @@
 .version 0.1
 .caps CAP_ALLOC CAP_COMPUTE CAP_MEASURE
 
-; Generate qubit list
-.set qubit_list = [f"q{i}" for i in range(n_qubits)]
-
 ; Allocate qubits
-alloc: ALLOC_LQ n={n_qubits}, profile="logical:Surface(d=3)" -> {", ".join(qubit_list)}
+; Note: qubit_outputs should be set by Python as comma-separated string
+alloc: ALLOC_LQ n={n_qubits}, profile="logical:Surface(d=3)" -> {qubit_outputs}
 
 ; Create W state (simplified construction)
 ; Initialize first qubit to |1⟩
 x0: APPLY_X q0
 
 ; Distribute excitation across all qubits
+; Note: angles should be passed as a list from Python
 .for i in 0..n_qubits-2
-    .set angle = 2 * math.asin(1 / math.sqrt(n_qubits - i))
-    ry{i}: APPLY_RY q{i}, theta={angle}
-    cnot{i}: APPLY_CNOT q{i}, q{i+1}
+    ry{i}: APPLY_RY q{i}, theta={angles[i]}
+    .set next_qubit = i + 1
+    cnot{i}: APPLY_CNOT q{i}, q{next_qubit}
 .endfor
 
 ; Measure all qubits
