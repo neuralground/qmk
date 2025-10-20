@@ -16,14 +16,26 @@ from kernel.security.entanglement_firewall import (
     EntanglementGraph,
     EntanglementFirewallViolation
 )
+from kernel.types.linear_types import (
+    LinearTypeSystem,
+    LinearityViolation
+)
+from kernel.security.capability_system import (
+    CapabilitySystem,
+    CapabilityToken,
+    CapabilityType
+)
 
 
 # Capability requirements for operations
 CAP_REQUIRED = {
-    "ALLOC_LQ": {"CAP_ALLOC"},
-    "OPEN_CHAN": {"CAP_LINK"},
-    "TELEPORT_CNOT": {"CAP_TELEPORT"},
-    "INJECT_T_STATE": {"CAP_MAGIC"},
+    "ALLOC_LQ": {CapabilityType.CAP_ALLOC},
+    "OPEN_CHAN": {CapabilityType.CAP_LINK},
+    "TELEPORT_CNOT": {CapabilityType.CAP_TELEPORT},
+    "INJECT_T_STATE": {CapabilityType.CAP_MAGIC},
+    "MEASURE_Z": {CapabilityType.CAP_MEASURE},
+    "MEASURE_X": {CapabilityType.CAP_MEASURE},
+    "MEASURE_BELL": {CapabilityType.CAP_MEASURE},
 }
 
 # Operations that are irreversible (break REV segments)
@@ -45,15 +57,21 @@ class EnhancedExecutor:
     def __init__(self, max_physical_qubits: int = 10000, 
                  seed: Optional[int] = None,
                  caps: Optional[Dict[str, bool]] = None,
-                 entanglement_firewall: Optional[EntanglementGraph] = None):
+                 entanglement_firewall: Optional[EntanglementGraph] = None,
+                 linear_type_system: Optional[LinearTypeSystem] = None,
+                 capability_system: Optional[CapabilitySystem] = None,
+                 capability_token: Optional[CapabilityToken] = None):
         """
         Initialize executor.
         
         Args:
             max_physical_qubits: Maximum physical qubits available
             seed: Random seed for deterministic execution
-            caps: Capability overrides
+            caps: Capability overrides (deprecated, use capability_token)
             entanglement_firewall: Optional entanglement firewall for multi-tenant security
+            linear_type_system: Optional linear type system for use-once semantics
+            capability_system: Optional capability system for operation authorization
+            capability_token: Optional capability token for this execution
         """
         self.resource_manager = EnhancedResourceManager(
             max_physical_qubits=max_physical_qubits,
@@ -66,13 +84,24 @@ class EnhancedExecutor:
         # Entanglement firewall for multi-tenant security
         self.entanglement_firewall = entanglement_firewall
         
+        # Linear type system for use-once semantics
+        self.linear_type_system = linear_type_system
+        
+        # Capability system for operation authorization
+        self.capability_system = capability_system
+        self.capability_token = capability_token
+        
         # Track qubit tenant ownership for firewall
-        self.qubit_tenants: Dict[str, str] = {}      
+        self.qubit_tenants: Dict[str, str] = {}
+        
+        # Track linear handles for qubits
+        self.qubit_handles: Dict[str, str] = {}  # vq_id -> handle_id
+        
         # Event storage (measurement outcomes)
         self.events: Dict[str, int] = {}
         
         # Execution log
-        self.execution_log: List[Tuple[str, ...]] = []
+        self.execution_log: List = []
     
     def execute(self, qvm_graph: Dict[str, Any]) -> Dict[str, Any]:
         """
@@ -161,15 +190,25 @@ class EnhancedExecutor:
         if not required:
             return
         
-        # Collect available capabilities
-        node_caps = set(node.get("caps", []))
-        available = node_caps | set(global_caps) | {c for c, v in self.caps.items() if v}
-        
-        if not required.issubset(available):
-            missing = required - available
-            raise RuntimeError(
-                f"Missing capabilities for {op}: {', '.join(sorted(missing))}"
-            )
+        # If capability system is enabled, use cryptographic tokens
+        if self.capability_system and self.capability_token:
+            for cap in required:
+                if not self.capability_system.check_capability(
+                    self.capability_token, cap, use_token=False
+                ):
+                    raise RuntimeError(
+                        f"Capability {cap.value} required for {op} but not granted"
+                    )
+        else:
+            # Fallback to old system (deprecated)
+            node_caps = set(node.get("caps", []))
+            available = node_caps | set(global_caps) | {c for c, v in self.caps.items() if v}
+            
+            if not required.issubset(available):
+                missing = required - available
+                raise RuntimeError(
+                    f"Missing capabilities for {op}: {', '.join(sorted(missing))}"
+                )
     
     def _check_guard(self, node: Dict[str, Any]) -> bool:
         """Check if guard condition is satisfied."""
@@ -205,12 +244,36 @@ class EnhancedExecutor:
                 self.entanglement_firewall.register_qubit(vq_id, tenant_id)
                 self.qubit_tenants[vq_id] = tenant_id
         
+        # Create linear handles for use-once semantics
+        if self.linear_type_system is not None:
+            tenant_id = args.get("tenant_id", "default")
+            for vq_id in vq_ids:
+                handle = self.linear_type_system.create_handle(
+                    resource_type="VQ",
+                    resource_id=vq_id,
+                    tenant_id=tenant_id,
+                    metadata={"profile": profile_str}
+                )
+                self.qubit_handles[vq_id] = handle.handle_id
+        
         self.execution_log.append(("ALLOC", node["id"], vq_ids, profile.code_family, allocated))
     
     def _exec_free(self, node: Dict[str, Any]):
         """Execute FREE_LQ operation."""
         vq_ids = node.get("vqs", [])
         self.resource_manager.free_logical_qubits(vq_ids)
+        
+        # Consume linear handles (use-once semantics)
+        if self.linear_type_system is not None:
+            for vq_id in vq_ids:
+                if vq_id in self.qubit_handles:
+                    handle_id = self.qubit_handles[vq_id]
+                    try:
+                        self.linear_type_system.consume_handle(handle_id, "FREE_LQ")
+                    except LinearityViolation as e:
+                        self.execution_log.append(("LINEARITY_VIOLATION", node["id"], str(e)))
+                        raise
+                    del self.qubit_handles[vq_id]
         
         # Unregister qubits from entanglement firewall
         if self.entanglement_firewall is not None:
@@ -358,6 +421,18 @@ class EnhancedExecutor:
         # Store event
         if event_ids:
             self.events[event_ids[0]] = outcome
+        
+        # Consume linear handle (measurement consumes the qubit)
+        if self.linear_type_system is not None:
+            vq_id = vq_ids[0]
+            if vq_id in self.qubit_handles:
+                handle_id = self.qubit_handles[vq_id]
+                try:
+                    self.linear_type_system.consume_handle(handle_id, f"MEASURE_{basis}")
+                except LinearityViolation as e:
+                    self.execution_log.append(("LINEARITY_VIOLATION", node["id"], str(e)))
+                    raise
+                del self.qubit_handles[vq_id]
         
         # Advance time
         self.resource_manager.advance_time(qubit.profile.logical_cycle_time_us)
