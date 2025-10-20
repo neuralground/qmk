@@ -1,14 +1,6 @@
-# QIR Optimization Passes - Master Index
+# QIR Optimization Passes
 
-**Complete documentation for all 17 optimization passes in the QMK QIR optimizer.**
-
-## 📚 Individual Pass Documentation
-
-Each pass now has comprehensive documentation with mini-tutorials, detailed examples, and research citations.
-
-**[→ View All Pass Documentation](passes/)**
-
----
+Comprehensive documentation of all optimization passes in the QMK QIR optimizer.
 
 ## Table of Contents
 
@@ -16,7 +8,6 @@ Each pass now has comprehensive documentation with mini-tutorials, detailed exam
 2. [Experimental Passes](#experimental-passes)
 3. [Research Citations](#research-citations)
 4. [Performance Comparison](#performance-comparison)
-5. [Usage Guide](#usage-guide)
 
 ---
 
@@ -24,15 +15,11 @@ Each pass now has comprehensive documentation with mini-tutorials, detailed exam
 
 These passes are production-ready and well-tested.
 
-**📖 Click pass name for detailed documentation with examples**
-
-### 1. [Gate Cancellation Pass](passes/01_gate_cancellation.md) 📖
+### 1. Gate Cancellation Pass
 
 **Purpose**: Remove adjacent inverse gate pairs
 
 **Research**: Nielsen & Chuang (2010), Maslov et al. (2005)
-
-**[→ Full Documentation with Examples](passes/01_gate_cancellation.md)**
 
 **Techniques**:
 - Self-inverse gate elimination (H·H = I, X·X = I)
@@ -125,13 +112,11 @@ Savings: 2 gates removed
 
 ---
 
-### 6. [Template Matching Pass](passes/06_template_matching.md) 📖
+### 6. Template Matching Pass
 
 **Purpose**: Replace subcircuits with optimal equivalents
 
 **Research**: Maslov & Dueck (2004), Patel et al. (2008)
-
-**[→ Full Documentation with Examples](passes/06_template_matching.md)**
 
 **Techniques**:
 - Match known inefficient patterns
@@ -170,13 +155,11 @@ Savings: 6 gates → 3 gates (50% reduction)
 
 ---
 
-### 8. [Clifford+T Optimization Pass](passes/08_clifford_t_optimization.md) 📖
+### 8. Clifford+T Optimization Pass
 
 **Purpose**: Minimize T-count for fault-tolerant circuits
 
 **Research**: Amy et al. (2014), Selinger (2013), Gosset et al. (2014)
-
-**[→ Full Documentation with Examples](passes/08_clifford_t_optimization.md)**
 
 **Techniques**:
 - T-gate commutation and cancellation
