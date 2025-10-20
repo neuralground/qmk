@@ -22,20 +22,24 @@
 ; Allocate 3 data qubits + 2 ancilla qubits
 alloc: ALLOC_LQ n=5, profile="logical:Surface(d=3)" -> d0, d1, d2, a0, a1
 
+; === Optional: Inject Error for Testing ===
+; Uncomment one of these to test error correction:
+; inject_error_d0: APPLY_X d0  ; Error on first qubit
+; inject_error_d1: APPLY_X d1  ; Error on middle qubit
+; inject_error_d2: APPLY_X d2  ; Error on last qubit
+
 ; === Syndrome Extraction Round ===
 
 ; Check d0 ⊕ d1 (parity check between first two data qubits)
-h_a0: APPLY_H a0
+; For Z-basis repetition code, use CNOT with ancilla as target
 cnot_d0_a0: APPLY_CNOT d0, a0
 cnot_d1_a0: APPLY_CNOT d1, a0
-h_a0_end: APPLY_H a0
 syndrome_01: MEASURE_Z a0 -> s01
 
 ; Check d1 ⊕ d2 (parity check between last two data qubits)
-h_a1: APPLY_H a1
+; For Z-basis repetition code, use CNOT with ancilla as target
 cnot_d1_a1: APPLY_CNOT d1, a1
 cnot_d2_a1: APPLY_CNOT d2, a1
-h_a1_end: APPLY_H a1
 syndrome_12: MEASURE_Z a1 -> s12
 
 ; === Conditional Corrections ===

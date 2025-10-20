@@ -194,8 +194,8 @@ def main():
         events = result['events']
         
         # Syndrome measurements
-        s01 = events.get('s01_r1', 0)
-        s12 = events.get('s12_r1', 0)
+        s01 = events.get('s01', 0)
+        s12 = events.get('s12', 0)
         
         print(f"Syndrome measurements:")
         print(f"  s01 (d0⊕d1): {s01}")
