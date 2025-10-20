@@ -142,13 +142,32 @@ class MacroPreprocessor:
                 if match:
                     var_name = match.group(1)
                     var_value = match.group(2).strip()
+                    
+                    # First, substitute any variables in the expression
+                    # This handles cases like ".set next = i + 1" where i is a loop variable
+                    var_value_substituted = re.sub(r'\{([^}]+)\}', 
+                        lambda m: str(self.variables.get(m.group(1), m.group(0))), 
+                        var_value)
+                    
+                    # Also substitute bare variable names (not in braces)
+                    # Sort variables by length (longest first) to avoid partial matches
+                    for var in sorted(self.variables.keys(), key=len, reverse=True):
+                        # Use word boundaries to avoid partial matches
+                        # Only substitute if not already part of another word
+                        pattern = r'(?<![a-zA-Z_])' + re.escape(var) + r'(?![a-zA-Z_0-9])'
+                        var_value_substituted = re.sub(pattern, 
+                            str(self.variables[var]), 
+                            var_value_substituted)
+                    
                     # Evaluate the expression
                     try:
                         # Support basic Python expressions
-                        self.variables[var_name] = eval(var_value, {"__builtins__": {}, "pi": math.pi, "math": math}, self.variables)
-                    except:
-                        # Store as string if evaluation fails
-                        self.variables[var_name] = var_value
+                        self.variables[var_name] = eval(var_value_substituted, {"__builtins__": {}, "pi": math.pi, "math": math}, self.variables)
+                    except Exception as e:
+                        # If evaluation fails (e.g., undefined variable), keep the .set line for later processing
+                        # This happens when .set is inside a loop and references the loop variable
+                        # DEBUG: Keeping .set line for later processing in loop
+                        result.append(line)  # Keep the original .set line
             else:
                 result.append(line)
         return result
@@ -185,16 +204,26 @@ class MacroPreprocessor:
                     
                     # Expand loop body for each iteration
                     for value in iterable:
-                        # Create new variable scope
+                        # Save current variable state
+                        vars_before = set(self.variables.keys())
                         old_value = self.variables.get(var_name)
                         self.variables[var_name] = value
                         
-                        # Recursively process body (for nested loops)
+                        # Process body: substitute variables, process .set, then process nested constructs
                         expanded_body = self._substitute_variables(body)
-                        expanded_body = self._process_loops(expanded_body)
+                        expanded_body = self._process_variables(expanded_body)  # Process .set inside loop
+                        expanded_body = self._process_loops(expanded_body)  # Process nested loops
+                        expanded_body = self._substitute_variables(expanded_body)  # Final substitution
                         result.extend(expanded_body)
                         
-                        # Restore old value
+                        # Restore variable state: remove variables added during this iteration
+                        vars_after = set(self.variables.keys())
+                        vars_added = vars_after - vars_before
+                        for added_var in vars_added:
+                            if added_var != var_name:  # Don't remove the loop variable yet
+                                self.variables.pop(added_var, None)
+                        
+                        # Restore loop variable
                         if old_value is not None:
                             self.variables[var_name] = old_value
                         else:
@@ -312,17 +341,24 @@ class MacroPreprocessor:
         return result
     
     def _substitute_variables(self, lines: List[str]) -> List[str]:
-        """Substitute {var} with variable values."""
+        """Substitute {var} and {expr} with variable values."""
         result = []
         for line in lines:
-            # Find all {var} patterns
-            def replace_var(match):
-                var_name = match.group(1)
-                if var_name in self.variables:
-                    return str(self.variables[var_name])
-                return match.group(0)
+            # Find all {expr} patterns (including array indexing, arithmetic, etc.)
+            def replace_expr(match):
+                expr = match.group(1)
+                try:
+                    # Try to evaluate the expression
+                    value = eval(expr, {"__builtins__": {}, "math": __import__('math')}, self.variables)
+                    return str(value)
+                except:
+                    # If evaluation fails, try simple variable lookup
+                    if expr in self.variables:
+                        return str(self.variables[expr])
+                    return match.group(0)
             
-            expanded = re.sub(r'\{(\w+)\}', replace_var, line)
+            # Match {anything} where anything can include brackets, dots, etc.
+            expanded = re.sub(r'\{([^}]+)\}', replace_expr, line)
             result.append(expanded)
         return result
 
