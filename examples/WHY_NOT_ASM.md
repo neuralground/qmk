@@ -26,7 +26,7 @@ This document explains why each remaining Python example cannot be converted to 
 ### Category 1: Already Using ASM ✅
 
 #### 1. `simple_bell_state.py`
-**Status:** Uses `bell_state.qvm.asm`
+**Status:** Uses `bell_state.qasm`
 **Why Not Pure ASM:** Python provides orchestration, telemetry display, and user interaction
 **Python Role:**
 - Client connection and capability negotiation
@@ -35,7 +35,7 @@ This document explains why each remaining Python example cannot be converted to 
 - Error handling
 
 #### 2. `multi_qubit_entanglement.py`
-**Status:** Uses `ghz_state.qvm.asm` and `w_state.qvm.asm`
+**Status:** Uses `ghz_state.qasm` and `w_state.qasm`
 **Why Not Pure ASM:** Python provides parameter calculation and result analysis
 **Python Role:**
 - Calculate W-state angles: `angle = 2 * math.asin(1 / math.sqrt(n_qubits - i))`
@@ -44,7 +44,7 @@ This document explains why each remaining Python example cannot be converted to 
 - Analyze and display results
 
 #### 3. `vqe_ansatz.py`
-**Status:** Uses `vqe_ansatz.qvm.asm`
+**Status:** Uses `vqe_ansatz.qasm`
 **Why Not Pure ASM:** Python provides parameter sweeps and optimization
 **Python Role:**
 - Parameter sweeps (different theta values)
@@ -53,7 +53,7 @@ This document explains why each remaining Python example cannot be converted to 
 - Result visualization
 
 #### 4. `adaptive_circuit.py`
-**Status:** Uses `adaptive_simple.qvm.asm` and `adaptive_multi_round.qvm.asm`
+**Status:** Uses `adaptive_simple.qasm` and `adaptive_multi_round.qasm`
 **Why Not Pure ASM:** Python provides orchestration and analysis
 **Python Role:**
 - Run multiple iterations with different seeds
@@ -62,7 +62,7 @@ This document explains why each remaining Python example cannot be converted to 
 - Display statistics
 
 #### 5. `deutsch_jozsa.py`
-**Status:** Uses `deutsch_jozsa.qvm.asm` with `.param`
+**Status:** Uses `deutsch_jozsa.qasm` with `.param`
 **Why Not Pure ASM:** Python provides testing and analysis
 **Python Role:**
 - Test all 5 oracle types
@@ -72,7 +72,7 @@ This document explains why each remaining Python example cannot be converted to 
 - Educational explanations
 
 #### 6. `grovers_algorithm.py`
-**Status:** Uses `grovers_search.qvm.asm` with `.param`
+**Status:** Uses `grovers_search.qasm` with `.param`
 **Why Not Pure ASM:** Python provides testing and analysis
 **Python Role:**
 - Test all 4 target states (00, 01, 10, 11)

@@ -12,10 +12,10 @@ This document describes the reusable circuit library architecture established th
 examples/
 ├── asm/
 │   ├── lib/                    # Reusable quantum circuit components
-│   │   ├── qft.qvm.asm        # Quantum Fourier Transform
-│   │   └── modular_exp.qvm.asm # Modular exponentiation framework
-│   ├── shors_period_finding.qvm.asm  # Simplified Shor's (pedagogical)
-│   └── shors_full.qvm.asm     # Full Shor's (uses libraries)
+│   │   ├── qft.qasm        # Quantum Fourier Transform
+│   │   └── modular_exp.qasm # Modular exponentiation framework
+│   ├── shors_period_finding.qasm  # Simplified Shor's (pedagogical)
+│   └── shors_full.qasm     # Full Shor's (uses libraries)
 │
 ├── lib/                        # Classical helper modules
 │   └── shors_classical.py     # Number theory functions
@@ -30,7 +30,7 @@ examples/
 
 ### 1. Quantum Fourier Transform (QFT)
 
-**File:** `examples/asm/lib/qft.qvm.asm`
+**File:** `examples/asm/lib/qft.qasm`
 
 **Purpose:** Transforms |x⟩ → (1/√N) Σ exp(2πixy/N)|y⟩
 
@@ -42,7 +42,7 @@ examples/
 ```asm
 .set n_qubits = 4
 .set qubit_prefix = "count"
-.include "lib/qft.qvm.asm"
+.include "lib/qft.qasm"
 ```
 
 **Implementation:**
@@ -61,7 +61,7 @@ examples/
 
 ### 2. Modular Exponentiation
 
-**File:** `examples/asm/lib/modular_exp.qvm.asm`
+**File:** `examples/asm/lib/modular_exp.qasm`
 
 **Purpose:** Computes |x⟩|y⟩ → |x⟩|y * a^x mod N⟩
 
@@ -81,7 +81,7 @@ examples/
 .set N = 15
 .set control_prefix = "ctrl"
 .set work_prefix = "work"
-.include "lib/modular_exp.qvm.asm"
+.include "lib/modular_exp.qasm"
 ```
 
 **Current Status:**
@@ -136,7 +136,7 @@ result = shors_classical_postprocessing(
 **Quantum libraries use parameters for flexibility:**
 
 ```asm
-; Library file: lib/qft.qvm.asm
+; Library file: lib/qft.qasm
 .version 0.1
 
 ; Parameters (set by caller)
@@ -158,7 +158,7 @@ result = shors_classical_postprocessing(
 
 .set n_qubits = 4
 .set qubit_prefix = "count"
-.include "lib/qft.qvm.asm"
+.include "lib/qft.qasm"
 ```
 
 ---
@@ -167,7 +167,7 @@ result = shors_classical_postprocessing(
 
 **Quantum part in ASM:**
 ```asm
-; shors_full.qvm.asm
+; shors_full.qasm
 .param N = 15
 .param a = 7
 
@@ -180,7 +180,7 @@ measure: MEASURE_Z ...
 **Classical part in Python:**
 ```python
 # shors_full.py
-circuit = assemble_file("shors_full.qvm.asm", {"N": 15, "a": 7})
+circuit = assemble_file("shors_full.qasm", {"N": 15, "a": 7})
 result = client.submit_and_wait(circuit)
 factors = shors_classical_postprocessing(result['events'])
 ```
@@ -237,24 +237,24 @@ factors = shors_classical_postprocessing(result['events'])
 ### Planned Additions
 
 1. **Quantum Adders**
-   - `lib/draper_adder.qvm.asm` - QFT-based adder
-   - `lib/cuccaro_adder.qvm.asm` - Ripple-carry adder
-   - `lib/takahashi_adder.qvm.asm` - Optimized adder
+   - `lib/draper_adder.qasm` - QFT-based adder
+   - `lib/cuccaro_adder.qasm` - Ripple-carry adder
+   - `lib/takahashi_adder.qasm` - Optimized adder
 
 2. **Arithmetic Circuits**
-   - `lib/modular_mult.qvm.asm` - Modular multiplication
-   - `lib/modular_inv.qvm.asm` - Modular inverse
-   - `lib/comparator.qvm.asm` - Quantum comparator
+   - `lib/modular_mult.qasm` - Modular multiplication
+   - `lib/modular_inv.qasm` - Modular inverse
+   - `lib/comparator.qasm` - Quantum comparator
 
 3. **Error Correction**
-   - `lib/surface_code.qvm.asm` - Surface code operations
-   - `lib/syndrome_extraction.qvm.asm` - Syndrome measurement
-   - `lib/error_correction.qvm.asm` - Correction circuits
+   - `lib/surface_code.qasm` - Surface code operations
+   - `lib/syndrome_extraction.qasm` - Syndrome measurement
+   - `lib/error_correction.qasm` - Correction circuits
 
 4. **Algorithm Components**
-   - `lib/grover_oracle.qvm.asm` - Oracle templates
-   - `lib/phase_estimation.qvm.asm` - General phase estimation
-   - `lib/amplitude_amplification.qvm.asm` - Amplitude amplification
+   - `lib/grover_oracle.qasm` - Oracle templates
+   - `lib/phase_estimation.qasm` - General phase estimation
+   - `lib/amplitude_amplification.qasm` - Amplitude amplification
 
 ---
 
@@ -301,7 +301,7 @@ factors = shors_classical_postprocessing(result['events'])
    ```asm
    ; Usage:
    ;   .set n_qubits = 4
-   ;   .include "lib/qft.qvm.asm"
+   ;   .include "lib/qft.qasm"
    ```
 
 ---
@@ -340,7 +340,7 @@ factors = shors_classical_postprocessing(result['events'])
 ### Using Libraries to Create Phase Estimation
 
 ```asm
-; phase_estimation.qvm.asm
+; phase_estimation.qasm
 .version 0.1
 .caps CAP_ALLOC CAP_COMPUTE CAP_MEASURE
 
@@ -367,7 +367,7 @@ x_eigen: APPLY_X eigenstate
 ; Apply QFT (use library!)
 .set n_qubits = n_precision
 .set qubit_prefix = "precision"
-.include "lib/qft.qvm.asm"
+.include "lib/qft.qasm"
 
 ; Measure
 .for i in 0..n_precision-1

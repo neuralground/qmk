@@ -11,7 +11,7 @@
 ;   qubit_prefix - Prefix for qubit names (e.g., "q" for q0, q1, q2...)
 ;
 ; Usage:
-;   .include "lib/qft.qvm.asm"
+;   .include "lib/qft.qasm"
 ;   .set n_qubits = 4
 ;   .set qubit_prefix = "count"
 ;

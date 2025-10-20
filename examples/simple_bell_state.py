@@ -45,7 +45,7 @@ def main():
     
     # Step 2: Load Bell state circuit from ASM
     print("2. Loading Bell state circuit from ASM...")
-    graph = assemble_file("bell_state.qvm.asm")
+    graph = assemble_file("bell_state.qasm")
     
     print(f"   Nodes: {len(graph['program']['nodes'])}")
     print(f"   Resources: {len(graph['resources']['vqs'])} qubits")

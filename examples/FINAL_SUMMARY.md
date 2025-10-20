@@ -105,10 +105,10 @@ def create_deutsch_jozsa_circuit(oracle_type: str):
 **After (2 lines):**
 ```python
 def create_deutsch_jozsa_circuit(oracle_type: str):
-    return assemble_file("deutsch_jozsa.qvm.asm", {"oracle_type": oracle_type})
+    return assemble_file("deutsch_jozsa.qasm", {"oracle_type": oracle_type})
 ```
 
-**ASM File (deutsch_jozsa.qvm.asm):**
+**ASM File (deutsch_jozsa.qasm):**
 ```asm
 .version 0.1
 .caps CAP_ALLOC CAP_COMPUTE CAP_MEASURE
@@ -189,13 +189,13 @@ def create_grovers_circuit(target_state: str, n_iterations: int):
     if len(target_state) != 2 or not all(c in '01' for c in target_state):
         raise ValueError("target_state must be 2-bit binary string")
     
-    return assemble_file("grovers_search.qvm.asm", {
+    return assemble_file("grovers_search.qasm", {
         "target_state": target_state,
         "n_iterations": n_iterations
     })
 ```
 
-**ASM File (grovers_search.qvm.asm):**
+**ASM File (grovers_search.qasm):**
 ```asm
 .version 0.1
 .caps CAP_ALLOC CAP_COMPUTE CAP_MEASURE
@@ -259,7 +259,7 @@ m1: MEASURE_Z q1 -> m1
 
 **Reason:** `measurement_bases_demo.py` is a low-level simulator demonstration using `LogicalQubit` directly, not a circuit-based example. It doesn't use `QSyscallClient` or circuit assembly, so conversion to parameterized ASM is not applicable.
 
-**Created:** `measurement_bases.qvm.asm` as a reference example for future circuit-based measurement demos.
+**Created:** `measurement_bases.qasm` as a reference example for future circuit-based measurement demos.
 
 ---
 
@@ -305,14 +305,14 @@ m1: MEASURE_Z q1 -> m1
 ```
 📦 QMK Examples
 ├── 🔷 Pure ASM (8 files)
-│   ├── bell_state.qvm.asm
-│   ├── ghz_state.qvm.asm
-│   ├── w_state.qvm.asm
-│   ├── vqe_ansatz.qvm.asm
-│   ├── adaptive_simple.qvm.asm
-│   ├── adaptive_multi_round.qvm.asm
-│   ├── deutsch_jozsa.qvm.asm ⭐ (with .param)
-│   └── grovers_search.qvm.asm ⭐ (with .param)
+│   ├── bell_state.qasm
+│   ├── ghz_state.qasm
+│   ├── w_state.qasm
+│   ├── vqe_ansatz.qasm
+│   ├── adaptive_simple.qasm
+│   ├── adaptive_multi_round.qasm
+│   ├── deutsch_jozsa.qasm ⭐ (with .param)
+│   └── grovers_search.qasm ⭐ (with .param)
 │
 ├── 🔶 Parameterized ASM + Python (2 files)
 │   ├── deutsch_jozsa.py ✅ (converted)
@@ -435,14 +435,14 @@ m1: MEASURE_Z q1 -> m1
 ### Final State
 
 **8 Pure ASM Examples:**
-- bell_state.qvm.asm
-- ghz_state.qvm.asm
-- w_state.qvm.asm
-- vqe_ansatz.qvm.asm
-- adaptive_simple.qvm.asm
-- adaptive_multi_round.qvm.asm
-- deutsch_jozsa.qvm.asm (parameterized)
-- grovers_search.qvm.asm (parameterized)
+- bell_state.qasm
+- ghz_state.qasm
+- w_state.qasm
+- vqe_ansatz.qasm
+- adaptive_simple.qasm
+- adaptive_multi_round.qasm
+- deutsch_jozsa.qasm (parameterized)
+- grovers_search.qasm (parameterized)
 
 **2 Parameterized Examples:**
 - deutsch_jozsa.py (97% reduction)

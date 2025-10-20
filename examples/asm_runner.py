@@ -2,7 +2,7 @@
 """
 ASM Runner - Utility for loading and executing QVM Assembly files
 
-This module provides helper functions to load .qvm.asm files,
+This module provides helper functions to load .qasm files,
 substitute parameters, and execute them via the QSyscall client.
 """
 
@@ -22,7 +22,7 @@ def load_asm_file(filename: str, params: Optional[Dict[str, Any]] = None) -> str
     Load an ASM file and substitute parameters.
     
     Args:
-        filename: Path to .qvm.asm file (relative to examples/asm/)
+        filename: Path to .qasm file (relative to examples/asm/)
         params: Dictionary of parameters to substitute
         
     Returns:
@@ -68,7 +68,7 @@ def assemble_file(filename: str, params: Optional[Dict[str, Any]] = None) -> Dic
     Load and assemble an ASM file.
     
     Args:
-        filename: Path to .qvm.asm file
+        filename: Path to .qasm file
         params: Dictionary of parameters to pass to assembler (.param overrides)
         
     Returns:
@@ -98,7 +98,7 @@ def execute_asm_file(
     
     Args:
         client: QSyscall client
-        filename: Path to .qvm.asm file
+        filename: Path to .qasm file
         params: Dictionary of parameters to substitute
         **kwargs: Additional arguments for submit_and_wait
         
@@ -115,7 +115,7 @@ def run_circuit(filename: str, params: Optional[Dict[str, Any]] = None, **kwargs
     Quick function to run a circuit from an ASM file.
     
     Args:
-        filename: Path to .qvm.asm file
+        filename: Path to .qasm file
         params: Dictionary of parameters
         **kwargs: Additional arguments for submit_and_wait
         
@@ -137,9 +137,9 @@ def run_circuit(filename: str, params: Optional[Dict[str, Any]] = None, **kwargs
 if __name__ == "__main__":
     # Example usage
     if len(sys.argv) < 2:
-        print("Usage: asm_runner.py <file.qvm.asm> [param=value ...]")
+        print("Usage: asm_runner.py <file.qasm> [param=value ...]")
         print("\nExample:")
-        print("  asm_runner.py ghz_state.qvm.asm n_qubits=4")
+        print("  asm_runner.py ghz_state.qasm n_qubits=4")
         sys.exit(1)
     
     filename = sys.argv[1]

@@ -13,7 +13,7 @@ Full Shor's algorithm:
 4. Classical: Use r to find factors
 
 Architecture:
-- Quantum part (period finding): shors_period_finding.qvm.asm
+- Quantum part (period finding): shors_period_finding.qasm
 - Classical parts (GCD, factor extraction): Python
 
 Example: Factor N=15 using a=7
@@ -63,7 +63,7 @@ def create_period_finding_circuit(N: int = 15, a: int = 7, n_count_qubits: int =
         QVM graph dictionary
     """
     # Use ASM file for quantum circuit
-    return assemble_file("shors_period_finding.qvm.asm", {
+    return assemble_file("shors_period_finding.qasm", {
         "n_count_qubits": n_count_qubits,
         "N": N,
         "a": a

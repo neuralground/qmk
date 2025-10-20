@@ -95,7 +95,7 @@ def create_deutsch_jozsa_circuit(oracle_type: str):
 **After:**
 ```python
 def create_deutsch_jozsa_circuit(oracle_type: str):
-    return assemble_file("deutsch_jozsa.qvm.asm", {"oracle_type": oracle_type})
+    return assemble_file("deutsch_jozsa.qasm", {"oracle_type": oracle_type})
 ```
 
 **ASM File:**
@@ -152,7 +152,7 @@ def create_grovers_circuit(target_state: str, n_iterations: int):
 **Python:**
 ```python
 def create_grovers_circuit(target_state: str, n_iterations: int):
-    return assemble_file("grovers_search.qvm.asm", {
+    return assemble_file("grovers_search.qasm", {
         "target_state": target_state,
         "n_iterations": n_iterations
     })
@@ -200,7 +200,7 @@ measure: MEASURE_Z q0 -> result
 **Python:**
 ```python
 def create_measurement_circuit(basis: str):
-    return assemble_file("measurement_bases.qvm.asm", {"basis": basis})
+    return assemble_file("measurement_bases.qasm", {"basis": basis})
 ```
 
 **Expected Benefit:** ~60% reduction (80 lines → 30 lines)
@@ -249,14 +249,14 @@ def create_measurement_circuit(basis: str):
 ```
 📦 QMK Examples
 ├── 🔷 Pure ASM (8 files)
-│   ├── bell_state.qvm.asm
-│   ├── ghz_state.qvm.asm
-│   ├── w_state.qvm.asm
-│   ├── vqe_ansatz.qvm.asm
-│   ├── deutsch_jozsa.qvm.asm ⭐ (with .param)
-│   ├── grovers_search.qvm.asm
-│   ├── adaptive_simple.qvm.asm
-│   └── adaptive_multi_round.qvm.asm
+│   ├── bell_state.qasm
+│   ├── ghz_state.qasm
+│   ├── w_state.qasm
+│   ├── vqe_ansatz.qasm
+│   ├── deutsch_jozsa.qasm ⭐ (with .param)
+│   ├── grovers_search.qasm
+│   ├── adaptive_simple.qasm
+│   └── adaptive_multi_round.qasm
 │
 ├── 🔶 Parameterized ASM + Python (3 files)
 │   ├── deutsch_jozsa.py ✅ (converted)
@@ -277,12 +277,12 @@ def create_measurement_circuit(basis: str):
 ### Immediate (15 minutes each)
 
 1. **Convert Grover's Algorithm**
-   - Update `grovers_search.qvm.asm` with `.param`
+   - Update `grovers_search.qasm` with `.param`
    - Add string indexing for target_state
    - Simplify Python to use `assemble_file()`
 
 2. **Convert Measurement Bases**
-   - Create `measurement_bases.qvm.asm` with `.param`
+   - Create `measurement_bases.qasm` with `.param`
    - Add basis selection via `.elif`
    - Simplify Python to use `assemble_file()`
 

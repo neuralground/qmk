@@ -11,12 +11,12 @@ This document analyzes all Python example files to determine which should be con
 ## Current State
 
 ### ✅ Already Converted to ASM (6 files)
-1. **GHZ State** - `ghz_state.qvm.asm` ✅
-2. **W State** - `w_state.qvm.asm` ✅
-3. **VQE Ansatz** - `vqe_ansatz.qvm.asm` ✅
-4. **Deutsch-Jozsa** - `deutsch_jozsa.qvm.asm` ✅
-5. **Grover's Search** - `grovers_search.qvm.asm` ✅
-6. **Adaptive Simple** - `adaptive_simple.qvm.asm` ✅
+1. **GHZ State** - `ghz_state.qasm` ✅
+2. **W State** - `w_state.qasm` ✅
+3. **VQE Ansatz** - `vqe_ansatz.qasm` ✅
+4. **Deutsch-Jozsa** - `deutsch_jozsa.qasm` ✅
+5. **Grover's Search** - `grovers_search.qasm` ✅
+6. **Adaptive Simple** - `adaptive_simple.qasm` ✅
 
 ### 📊 Analysis of Remaining Examples (16 files)
 
@@ -24,7 +24,7 @@ This document analyzes all Python example files to determine which should be con
 
 ## Category 1: SHOULD Convert to ASM (5 files)
 
-### 1. ✅ **simple_bell_state.py** → `bell_state.qvm.asm`
+### 1. ✅ **simple_bell_state.py** → `bell_state.qasm`
 **Complexity:** Very Low
 **Current:** Loads JSON file, just orchestration
 **Benefits:**
@@ -44,7 +44,7 @@ q1: ───X─M
 
 ---
 
-### 2. ✅ **adaptive_circuit.py** → `adaptive_multi_round.qvm.asm`
+### 2. ✅ **adaptive_circuit.py** → `adaptive_multi_round.qasm`
 **Complexity:** Medium
 **Current:** Creates JSON graphs programmatically
 **Benefits:**
@@ -300,8 +300,8 @@ q1: ───X─M
 ## Summary of Recommendations
 
 ### ✅ Convert to ASM (2 files)
-1. **simple_bell_state.py** → `bell_state.qvm.asm` (HIGH PRIORITY)
-2. **adaptive_circuit.py** → `adaptive_multi_round.qvm.asm` (MEDIUM PRIORITY)
+1. **simple_bell_state.py** → `bell_state.qasm` (HIGH PRIORITY)
+2. **adaptive_circuit.py** → `adaptive_multi_round.qasm` (MEDIUM PRIORITY)
 
 ### ❌ Keep as Python (20 files)
 - **5 files** - Algorithm demos (already use ASM templates)
@@ -315,14 +315,14 @@ q1: ───X─M
 
 ### Priority 1: Simple Bell State ⭐⭐⭐
 - **File:** `simple_bell_state.py`
-- **Target:** `bell_state.qvm.asm`
+- **Target:** `bell_state.qasm`
 - **Effort:** Low (15 minutes)
 - **Impact:** High (simplest example should be pure ASM)
 - **Circuit:** 2 qubits, 3 gates
 
 ### Priority 2: Multi-Round Adaptive ⭐⭐
 - **File:** `adaptive_circuit.py` (multi-round function)
-- **Target:** `adaptive_multi_round.qvm.asm`
+- **Target:** `adaptive_multi_round.qasm`
 - **Effort:** Medium (30 minutes)
 - **Impact:** Medium (demonstrates complex guards)
 - **Circuit:** 5 qubits, ~20 gates, complex guards
@@ -346,13 +346,13 @@ q1: ───X─M
 ## Implementation Plan
 
 ### Phase 1: Bell State (Immediate)
-1. Create `bell_state.qvm.asm`
+1. Create `bell_state.qasm`
 2. Update `simple_bell_state.py` to use ASM
 3. Test execution
 4. Update documentation
 
 ### Phase 2: Multi-Round Adaptive (Next)
-1. Create `adaptive_multi_round.qvm.asm`
+1. Create `adaptive_multi_round.qasm`
 2. Update `adaptive_circuit.py` to use ASM
 3. Test with complex guards
 4. Update documentation

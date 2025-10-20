@@ -173,7 +173,7 @@ def create_deutsch_jozsa_circuit(oracle_type: str):
 
 **Enhanced Assembler Approach:**
 ```asm
-; deutsch_jozsa.qvm.asm with parameters
+; deutsch_jozsa.qasm with parameters
 .version 0.1
 .param oracle_type = "balanced_x0"
 
@@ -231,7 +231,7 @@ def create_grovers_circuit(target_state: str, n_iterations: int):
 
 **Enhanced Assembler Approach:**
 ```asm
-; grovers_search.qvm.asm with parameters
+; grovers_search.qasm with parameters
 .version 0.1
 .param target_state = "11"
 .param n_iterations = 1
@@ -293,7 +293,7 @@ def create_measurement_circuit(basis: str):
 
 **Enhanced Assembler Approach:**
 ```asm
-; measurement_bases.qvm.asm
+; measurement_bases.qasm
 .version 0.1
 .param basis = "Z"
 

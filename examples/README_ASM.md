@@ -17,11 +17,11 @@ All QMK examples now use **pure QVM Assembly files** with minimal Python scaffol
 ```
 examples/
 ├── asm/                          # Pure ASM circuit files
-│   ├── ghz_state.qvm.asm        # GHZ state generation
-│   ├── w_state.qvm.asm          # W state generation
-│   ├── vqe_ansatz.qvm.asm       # VQE ansatz circuit
-│   ├── deutsch_jozsa.qvm.asm    # Deutsch-Jozsa algorithm
-│   └── grovers_search.qvm.asm   # Grover's search algorithm
+│   ├── ghz_state.qasm        # GHZ state generation
+│   ├── w_state.qasm          # W state generation
+│   ├── vqe_ansatz.qasm       # VQE ansatz circuit
+│   ├── deutsch_jozsa.qasm    # Deutsch-Jozsa algorithm
+│   └── grovers_search.qasm   # Grover's search algorithm
 │
 ├── asm_runner.py                 # Utility for loading/executing ASM
 │
@@ -33,7 +33,7 @@ examples/
 
 ### Design Pattern
 
-**ASM Files** (`.qvm.asm`):
+**ASM Files** (`.qasm`):
 - Pure quantum circuit descriptions
 - Use macro system for loops, conditionals
 - Accept parameters via `.set` directives
@@ -53,7 +53,7 @@ examples/
 from asm_runner import assemble_file
 
 # Load and assemble with parameters
-graph = assemble_file("ghz_state.qvm.asm", {"n_qubits": 4})
+graph = assemble_file("ghz_state.qasm", {"n_qubits": 4})
 
 # Execute
 client = QSyscallClient()
@@ -67,7 +67,7 @@ result = client.submit_and_wait(graph)
 from asm_runner import run_circuit
 
 # One-liner to run a circuit
-result = run_circuit("vqe_ansatz.qvm.asm", {
+result = run_circuit("vqe_ansatz.qasm", {
     "theta1": 0.785,
     "theta2": 0.0,
     "theta3": 0.0
@@ -78,7 +78,7 @@ result = run_circuit("vqe_ansatz.qvm.asm", {
 
 ```bash
 # Run ASM file directly from command line
-python examples/asm_runner.py ghz_state.qvm.asm n_qubits=4
+python examples/asm_runner.py ghz_state.qasm n_qubits=4
 ```
 
 ## ASM File Format
@@ -117,7 +117,7 @@ Parameters are passed from Python and inserted as `.set` directives:
 
 **Python:**
 ```python
-graph = assemble_file("circuit.qvm.asm", {
+graph = assemble_file("circuit.qasm", {
     "n_qubits": 4,
     "angle": 1.57,
     "target": ["1", "1"]
@@ -137,7 +137,7 @@ rz: APPLY_RZ q0, theta={angle}
 
 ## Example ASM Files
 
-### 1. GHZ State (`ghz_state.qvm.asm`)
+### 1. GHZ State (`ghz_state.qasm`)
 
 Creates |GHZ⟩ = (|00...0⟩ + |11...1⟩)/√2
 
@@ -157,10 +157,10 @@ q3: ───────────────X─────M
 
 **Usage:**
 ```python
-graph = assemble_file("ghz_state.qvm.asm", {"n_qubits": 4})
+graph = assemble_file("ghz_state.qasm", {"n_qubits": 4})
 ```
 
-### 2. VQE Ansatz (`vqe_ansatz.qvm.asm`)
+### 2. VQE Ansatz (`vqe_ansatz.qasm`)
 
 Variational quantum eigensolver ansatz with parameterized rotations
 
@@ -176,14 +176,14 @@ q1: ─H─Rz(θ2)─X────────M
 
 **Usage:**
 ```python
-graph = assemble_file("vqe_ansatz.qvm.asm", {
+graph = assemble_file("vqe_ansatz.qasm", {
     "theta1": 0.785,
     "theta2": 0.0,
     "theta3": 0.0
 })
 ```
 
-### 3. Deutsch-Jozsa (`deutsch_jozsa.qvm.asm`)
+### 3. Deutsch-Jozsa (`deutsch_jozsa.qasm`)
 
 Determines if a function is constant or balanced
 
@@ -201,12 +201,12 @@ y:  ─X─H───[Oracle]───────M
 
 **Usage:**
 ```python
-graph = assemble_file("deutsch_jozsa.qvm.asm", {
+graph = assemble_file("deutsch_jozsa.qasm", {
     "oracle_type": "balanced_xor"
 })
 ```
 
-### 4. Grover's Search (`grovers_search.qvm.asm`)
+### 4. Grover's Search (`grovers_search.qasm`)
 
 Searches for a marked item in an unsorted database
 
@@ -223,7 +223,7 @@ q1: ─H─[Oracle]─[Diffusion]─M
 
 **Usage:**
 ```python
-graph = assemble_file("grovers_search.qvm.asm", {
+graph = assemble_file("grovers_search.qasm", {
     "target_state": ["1", "1"],
     "n_iterations": 1
 })
@@ -263,7 +263,7 @@ def main():
     ])
     
     # Load and execute ASM file
-    graph = assemble_file("ghz_state.qvm.asm", {"n_qubits": 4})
+    graph = assemble_file("ghz_state.qasm", {"n_qubits": 4})
     result = client.submit_and_wait(graph, timeout_ms=5000)
     
     # Analyze results
@@ -286,7 +286,7 @@ def run_parameter_sweep():
     # Sweep over parameters
     results = []
     for theta in [0.0, 0.785, 1.57, 2.356, 3.14]:
-        graph = assemble_file("vqe_ansatz.qvm.asm", {
+        graph = assemble_file("vqe_ansatz.qasm", {
             "theta1": theta,
             "theta2": 0.0,
             "theta3": 0.0
@@ -349,7 +349,7 @@ asm = "\n".join(asm_lines)
 
 **Step 1: Create ASM file**
 
-Extract circuit logic to `examples/asm/my_circuit.qvm.asm`:
+Extract circuit logic to `examples/asm/my_circuit.qasm`:
 
 ```asm
 .version 0.1
@@ -384,7 +384,7 @@ def create_circuit(param1, param2):
 
 # New
 def create_circuit(param1, param2):
-    return assemble_file("my_circuit.qvm.asm", {
+    return assemble_file("my_circuit.qasm", {
         "param1": param1,
         "param2": param2
     })
@@ -451,7 +451,7 @@ m1: MEASURE_Z q1 -> m1
 ### 5. Use Macros for Repetitive Patterns
 
 ```asm
-.include "stdlib.qvm.asm"
+.include "stdlib.qasm"
 
 ; Use standard library macros
 GHZ_STATE(["q0", "q1", "q2", "q3"])

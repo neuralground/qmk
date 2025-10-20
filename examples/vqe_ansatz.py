@@ -40,7 +40,7 @@ def create_vqe_ansatz(theta1: float, theta2: float, theta3: float) -> dict:
     Returns:
         QVM graph dictionary
     """
-    return assemble_file("vqe_ansatz.qvm.asm", {
+    return assemble_file("vqe_ansatz.qasm", {
         "theta1": theta1,
         "theta2": theta2,
         "theta3": theta3

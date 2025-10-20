@@ -124,7 +124,7 @@ def create_multi_round_adaptive() -> dict:
     Returns:
         QVM graph dictionary
     """
-    return assemble_file("adaptive_multi_round.qvm.asm")
+    return assemble_file("adaptive_multi_round.qasm")
 
 
 def main():

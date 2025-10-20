@@ -8,9 +8,9 @@ This demonstrates the complete Shor's factoring algorithm with:
 - Classical post-processing
 
 Architecture:
-- Quantum circuit: shors_full.qvm.asm (with full QFT)
+- Quantum circuit: shors_full.qasm (with full QFT)
 - Classical helpers: lib/shors_classical.py
-- Reusable components: lib/qft.qvm.asm, lib/modular_exp.qvm.asm
+- Reusable components: lib/qft.qasm, lib/modular_exp.qasm
 
 This shows how to build complex quantum algorithms from library components.
 """
@@ -60,7 +60,7 @@ def create_full_shors_circuit(N: int = 15, a: int = 7, n_count_qubits: int = 4) 
     Returns:
         QVM graph dictionary
     """
-    return assemble_file("shors_full.qvm.asm", {
+    return assemble_file("shors_full.qasm", {
         "N": N,
         "a": a,
         "n_count_qubits": n_count_qubits
@@ -198,8 +198,8 @@ This implementation includes:
    - Factor extraction: gcd(a^(r/2) ± 1, N)
 
 4. Reusable Library Components
-   - lib/qft.qvm.asm - Quantum Fourier Transform
-   - lib/modular_exp.qvm.asm - Modular exponentiation
+   - lib/qft.qasm - Quantum Fourier Transform
+   - lib/modular_exp.qasm - Modular exponentiation
    - lib/shors_classical.py - Classical helpers
 
 Key Differences from Simplified Version:

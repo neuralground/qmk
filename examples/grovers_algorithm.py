@@ -46,7 +46,7 @@ def create_grovers_circuit(target_state: str = "11", n_iterations: int = 1) -> d
         raise ValueError("target_state must be 2-bit binary string")
     
     # Use ASM file with .param override
-    return assemble_file("grovers_search.qvm.asm", {
+    return assemble_file("grovers_search.qasm", {
         "target_state": target_state,
         "n_iterations": n_iterations
     })

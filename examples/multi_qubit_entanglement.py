@@ -45,7 +45,7 @@ def create_ghz_state(n_qubits: int = 4) -> dict:
         QVM graph dictionary
     """
     qubit_outputs = ", ".join([f"q{i}" for i in range(n_qubits)])
-    return assemble_file("ghz_state.qvm.asm", {
+    return assemble_file("ghz_state.qasm", {
         "n_qubits": n_qubits,
         "qubit_outputs": qubit_outputs
     })
@@ -71,7 +71,7 @@ def create_w_state(n_qubits: int = 3) -> dict:
         angle = 2 * math.asin(1 / math.sqrt(n_qubits - i))
         angles.append(angle)
     
-    return assemble_file("w_state.qvm.asm", {
+    return assemble_file("w_state.qasm", {
         "n_qubits": n_qubits,
         "qubit_outputs": qubit_outputs,
         "angles": angles

@@ -46,7 +46,7 @@ def create_deutsch_jozsa_circuit(oracle_type: str = "constant_0") -> dict:
         QVM graph dictionary
     """
     # Use ASM file with .param override
-    return assemble_file("deutsch_jozsa.qvm.asm", {"oracle_type": oracle_type})
+    return assemble_file("deutsch_jozsa.qasm", {"oracle_type": oracle_type})
 
 
 def run_deutsch_jozsa(client: QSyscallClient, oracle_type: str, shots: int = 10):
