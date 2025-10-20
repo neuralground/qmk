@@ -17,11 +17,12 @@ ROOT = Path(__file__).parent.parent
 sys.path.insert(0, str(ROOT))
 
 from runtime.client.qsyscall_client import QSyscallClient
+from qvm.tools.qvm_asm import assemble
 
 
 def create_vqe_ansatz(theta1: float, theta2: float, theta3: float) -> dict:
     """
-    Create a simple VQE ansatz circuit.
+    Create a simple VQE ansatz circuit using QVM assembly.
     
     Circuit structure:
     q0: ─H─Rz(θ1)─●─Rz(θ3)─M
@@ -34,79 +35,27 @@ def create_vqe_ansatz(theta1: float, theta2: float, theta3: float) -> dict:
     Returns:
         QVM graph dictionary
     """
-    return {
-        "version": "0.1",
-        "metadata": {
-            "name": "vqe_ansatz",
-            "description": f"VQE ansatz with θ=({theta1:.3f}, {theta2:.3f}, {theta3:.3f})"
-        },
-        "program": {
-            "nodes": [
-                # Allocate qubits
-                {
-                    "id": "alloc",
-                    "op": "ALLOC_LQ",
-                    "vqs": ["q0", "q1"],
-                    "args": {"n": 2, "profile": "logical:Surface(d=3)"}
-                },
-                # Initial Hadamards
-                {
-                    "id": "h0",
-                    "op": "APPLY_H",
-                    "vqs": ["q0"]
-                },
-                {
-                    "id": "h1",
-                    "op": "APPLY_H",
-                    "vqs": ["q1"]
-                },
-                # First rotation layer
-                {
-                    "id": "rz0",
-                    "op": "APPLY_RZ",
-                    "vqs": ["q0"],
-                    "args": {"theta": theta1}
-                },
-                {
-                    "id": "rz1",
-                    "op": "APPLY_RZ",
-                    "vqs": ["q1"],
-                    "args": {"theta": theta2}
-                },
-                # Entangling layer (CNOT)
-                {
-                    "id": "cnot",
-                    "op": "APPLY_CNOT",
-                    "vqs": ["q0", "q1"]
-                },
-                # Final rotation
-                {
-                    "id": "rz2",
-                    "op": "APPLY_RZ",
-                    "vqs": ["q0"],
-                    "args": {"theta": theta3}
-                },
-                # Measurements (consume qubits via linearity)
-                {
-                    "id": "m0",
-                    "op": "MEASURE_Z",
-                    "vqs": ["q0"],
-                    "produces": ["m0"]
-                },
-                {
-                    "id": "m1",
-                    "op": "MEASURE_Z",
-                    "vqs": ["q1"],
-                    "produces": ["m1"]
-                }
-                # No FREE_LQ needed - measurements consume qubits
-            ]
-        },
-        "resources": {
-            "vqs": ["q0", "q1"],
-            "events": ["m0", "m1"]
-        }
-    }
+    # Use QVM assembly for cleaner, more maintainable code
+    asm = f"""
+.version 0.1
+.caps CAP_ALLOC CAP_COMPUTE CAP_MEASURE
+
+; VQE ansatz with θ=({theta1:.3f}, {theta2:.3f}, {theta3:.3f})
+; Circuit: q0: ─H─Rz(θ1)─●─Rz(θ3)─M
+;                        │
+;         q1: ─H─Rz(θ2)─X────────M
+
+alloc: ALLOC_LQ n=2, profile="logical:Surface(d=3)" -> q0, q1 [CAP_ALLOC]
+h0: APPLY_H q0
+h1: APPLY_H q1
+rz0: APPLY_RZ q0, theta={theta1}
+rz1: APPLY_RZ q1, theta={theta2}
+cnot: APPLY_CNOT q0, q1
+rz2: APPLY_RZ q0, theta={theta3}
+m0: MEASURE_Z q0 -> m0
+m1: MEASURE_Z q1 -> m1
+"""
+    return assemble(asm)
 
 
 def run_vqe_iteration(client: QSyscallClient, params: tuple, iteration: int):
