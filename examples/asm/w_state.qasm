@@ -16,16 +16,29 @@
 ; Allocate qubits
 alloc: ALLOC_LQ n={n_qubits}, profile="logical:Surface(d=3)" -> {qubit_outputs}
 
-; Create W state (simplified construction)
+; Create W state using recursive construction
+; Algorithm:
+; 1. Start with |1⟩ on first qubit
+; 2. For each step, rotate and transfer excitation to next qubit
+; 3. Uncompute rotation after transfer
+;
+; For 3 qubits: |W⟩ = (|100⟩ + |010⟩ + |001⟩)/√3
+
 ; Initialize first qubit to |1⟩
 x0: APPLY_X q0
 
-; Distribute excitation across all qubits
-; Note: angles should be passed as a list from Python
+; Recursive distribution of excitation
 .for i in 0..n_qubits-2
-    ry{i}: APPLY_RY q{i}, theta={angles[i]}
+    ; Rotate qubit i to share excitation with next qubit
+    ry{i}_fwd: APPLY_RY q{i}, theta={angles[i]}
+    
+    ; Transfer excitation to next qubit
     .set next_qubit = i + 1
     cnot{i}: APPLY_CNOT q{i}, q{next_qubit}
+    
+    ; Uncompute the rotation (apply inverse)
+    .set neg_angle = -1 * angles[i]
+    ry{i}_inv: APPLY_RY q{i}, theta={neg_angle}
 .endfor
 
 ; Measure all qubits

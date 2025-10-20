@@ -220,7 +220,9 @@ class MacroPreprocessor:
                     # Evaluate the expression
                     try:
                         # Support basic Python expressions
-                        self.variables[var_name] = eval(var_value_substituted, {"__builtins__": {}, "pi": math.pi, "math": math}, self.variables)
+                        # Include both variables and params in evaluation context
+                        eval_context = {**self.variables, **self.params}
+                        self.variables[var_name] = eval(var_value_substituted, {"__builtins__": {}, "pi": math.pi, "math": math}, eval_context)
                     except Exception as e:
                         # If evaluation fails (e.g., undefined variable), keep the .set line for later processing
                         # This happens when .set is inside a loop and references the loop variable
@@ -452,12 +454,16 @@ class MacroPreprocessor:
                 expr = match.group(1)
                 try:
                     # Try to evaluate the expression
-                    value = eval(expr, {"__builtins__": {}, "math": __import__('math')}, self.variables)
+                    # Include both variables and params in evaluation context
+                    eval_context = {**self.variables, **self.params}
+                    value = eval(expr, {"__builtins__": {}, "math": __import__('math')}, eval_context)
                     return str(value)
                 except:
                     # If evaluation fails, try simple variable lookup
                     if expr in self.variables:
                         return str(self.variables[expr])
+                    if expr in self.params:
+                        return str(self.params[expr])
                     return match.group(0)
             
             # Match {anything} where anything can include brackets, dots, etc.
