@@ -145,6 +145,17 @@ class QVMStaticVerifier:
                 graph = qvm_graph
             
             nodes = graph.get("program", {}).get("nodes", [])
+            
+            # Validate nodes is a list
+            if not isinstance(nodes, list):
+                result.errors.append(VerificationError(
+                    f"Invalid nodes type: expected list, got {type(nodes).__name__}",
+                    VerificationErrorType.INVALID_GRAPH.value,
+                    {"nodes_type": type(nodes).__name__}
+                ))
+                result.is_valid = False
+                return result
+            
             if not nodes:
                 result.errors.append(VerificationError(
                     "Empty or invalid graph",
