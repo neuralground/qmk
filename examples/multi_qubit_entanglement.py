@@ -10,12 +10,14 @@ Demonstrates creating various entangled states:
 
 import json
 import sys
+import math
 from pathlib import Path
 
 ROOT = Path(__file__).parent.parent
 sys.path.insert(0, str(ROOT))
 
 from runtime.client.qsyscall_client import QSyscallClient
+from qvm.tools.qvm_asm import assemble
 
 
 def create_ghz_state(n_qubits: int = 4) -> dict:
@@ -37,74 +39,30 @@ def create_ghz_state(n_qubits: int = 4) -> dict:
     Returns:
         QVM graph dictionary
     """
-    qubit_ids = [f"q{i}" for i in range(n_qubits)]
+    # Generate qubit list
+    qubit_list = ", ".join([f"q{i}" for i in range(n_qubits)])
     
-    nodes = [
-        # Allocate qubits
-        {
-            "id": "alloc",
-            "op": "ALLOC_LQ",
-            "outputs": qubit_ids,
-            "profile": "logical:surface_code(d=3)"
-        },
-        # Hadamard on first qubit
-        {
-            "id": "h0",
-            "op": "H",
-            "qubits": ["q0"],
-            "deps": ["alloc"]
-        }
+    # Build ASM program
+    asm_lines = [
+        ".version 0.1",
+        ".caps CAP_ALLOC CAP_COMPUTE CAP_MEASURE",
+        "",
+        f"; {n_qubits}-qubit GHZ state: |GHZ⟩ = (|00...0⟩ + |11...1⟩)/√2",
+        "",
+        f"alloc: ALLOC_LQ n={n_qubits}, profile=\"logical:Surface(d=3)\" -> {qubit_list}",
+        "h0: APPLY_H q0",
     ]
     
-    edges = [{"from": "alloc", "to": "h0"}]
-    
     # CNOTs to create entanglement
-    prev_node = "h0"
     for i in range(1, n_qubits):
-        cnot_id = f"cnot_{i}"
-        nodes.append({
-            "id": cnot_id,
-            "op": "CNOT",
-            "qubits": ["q0", f"q{i}"],
-            "deps": [prev_node]
-        })
-        edges.append({"from": prev_node, "to": cnot_id})
-        prev_node = cnot_id
+        asm_lines.append(f"cnot{i}: APPLY_CNOT q0, q{i}")
     
     # Measurements
-    measure_deps = []
     for i in range(n_qubits):
-        measure_id = f"m{i}"
-        nodes.append({
-            "id": measure_id,
-            "op": "MEASURE_Z",
-            "qubits": [f"q{i}"],
-            "outputs": [measure_id],
-            "deps": [prev_node]
-        })
-        edges.append({"from": prev_node, "to": measure_id})
-        measure_deps.append(measure_id)
+        asm_lines.append(f"m{i}: MEASURE_Z q{i} -> m{i}")
     
-    # Free qubits
-    nodes.append({
-        "id": "free",
-        "op": "FREE_LQ",
-        "qubits": qubit_ids,
-        "deps": measure_deps
-    })
-    
-    for dep in measure_deps:
-        edges.append({"from": dep, "to": "free"})
-    
-    return {
-        "version": "0.1",
-        "metadata": {
-            "name": f"ghz_{n_qubits}",
-            "description": f"{n_qubits}-qubit GHZ state"
-        },
-        "nodes": nodes,
-        "edges": edges
-    }
+    asm = "\n".join(asm_lines) + "\n"
+    return assemble(asm)
 
 
 def create_w_state(n_qubits: int = 3) -> dict:
@@ -119,89 +77,34 @@ def create_w_state(n_qubits: int = 3) -> dict:
     Returns:
         QVM graph dictionary
     """
-    import math
+    # Generate qubit list
+    qubit_list = ", ".join([f"q{i}" for i in range(n_qubits)])
     
-    qubit_ids = [f"q{i}" for i in range(n_qubits)]
-    
-    nodes = [
-        # Allocate qubits
-        {
-            "id": "alloc",
-            "op": "ALLOC_LQ",
-            "outputs": qubit_ids,
-            "profile": "logical:surface_code(d=3)"
-        },
-        # X on first qubit to start with |1⟩
-        {
-            "id": "x0",
-            "op": "X",
-            "qubits": ["q0"],
-            "deps": ["alloc"]
-        }
+    # Build ASM program
+    asm_lines = [
+        ".version 0.1",
+        ".caps CAP_ALLOC CAP_COMPUTE CAP_MEASURE",
+        "",
+        f"; {n_qubits}-qubit W state: |W⟩ = (|100...0⟩ + |010...0⟩ + ... + |00...01⟩)/√n",
+        "",
+        f"alloc: ALLOC_LQ n={n_qubits}, profile=\"logical:Surface(d=3)\" -> {qubit_list}",
+        "x0: APPLY_X q0  ; Start with |1⟩",
     ]
     
-    edges = [{"from": "alloc", "to": "x0"}]
-    
     # Create W state using controlled rotations
-    prev_node = "x0"
     for i in range(n_qubits - 1):
         # Rotation to distribute amplitude
-        ry_id = f"ry_{i}"
         angle = math.acos(math.sqrt(1.0 / (n_qubits - i)))
-        nodes.append({
-            "id": ry_id,
-            "op": "RY",
-            "qubits": [f"q{i}"],
-            "params": {"theta": angle},
-            "deps": [prev_node]
-        })
-        edges.append({"from": prev_node, "to": ry_id})
-        
+        asm_lines.append(f"ry{i}: APPLY_RY q{i}, theta={angle}")
         # CNOT to next qubit
-        cnot_id = f"cnot_{i}"
-        nodes.append({
-            "id": cnot_id,
-            "op": "CNOT",
-            "qubits": [f"q{i}", f"q{i+1}"],
-            "deps": [ry_id]
-        })
-        edges.append({"from": ry_id, "to": cnot_id})
-        prev_node = cnot_id
+        asm_lines.append(f"cnot{i}: APPLY_CNOT q{i}, q{i+1}")
     
     # Measurements
-    measure_deps = []
     for i in range(n_qubits):
-        measure_id = f"m{i}"
-        nodes.append({
-            "id": measure_id,
-            "op": "MEASURE_Z",
-            "qubits": [f"q{i}"],
-            "outputs": [measure_id],
-            "deps": [prev_node]
-        })
-        edges.append({"from": prev_node, "to": measure_id})
-        measure_deps.append(measure_id)
+        asm_lines.append(f"m{i}: MEASURE_Z q{i} -> m{i}")
     
-    # Free qubits
-    nodes.append({
-        "id": "free",
-        "op": "FREE_LQ",
-        "qubits": qubit_ids,
-        "deps": measure_deps
-    })
-    
-    for dep in measure_deps:
-        edges.append({"from": dep, "to": "free"})
-    
-    return {
-        "version": "0.1",
-        "metadata": {
-            "name": f"w_{n_qubits}",
-            "description": f"{n_qubits}-qubit W state"
-        },
-        "nodes": nodes,
-        "edges": edges
-    }
+    asm = "\n".join(asm_lines) + "\n"
+    return assemble(asm)
 
 
 def analyze_measurements(events: dict, n_qubits: int, state_type: str):
@@ -238,8 +141,13 @@ def main():
     
     # Negotiate capabilities
     print("Negotiating capabilities...")
-    caps_result = client.negotiate_capabilities(["CAP_ALLOC"])
-    print(f"Session ID: {caps_result['session_id']}\n")
+    caps_result = client.negotiate_capabilities([
+        "CAP_ALLOC",
+        "CAP_COMPUTE",
+        "CAP_MEASURE"
+    ])
+    print(f"Session ID: {caps_result['session_id']}")
+    print(f"Granted: {caps_result.get('granted', [])}\n")
     
     # Example 1: 4-qubit GHZ state
     print("=" * 50)
