@@ -3,6 +3,12 @@
 QMK Test Runner
 
 Runs all unit and integration tests and reports results.
+
+Test Suites:
+- QVM library components (qvm/lib/)
+- Example circuits (examples/asm/)
+- Integration tests
+- Unit tests
 """
 
 import sys
