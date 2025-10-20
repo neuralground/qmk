@@ -118,7 +118,8 @@ class TestAdaptiveExamples(unittest.TestCase):
         self.assertIn('program', result)
         self.assertIn('nodes', result['program'])
         # Should have multiple syndrome measurements and corrections
-        self.assertGreater(len(result['program']['nodes']), 15)
+        # After fixing syndrome extraction: 13 nodes (was 17)
+        self.assertGreaterEqual(len(result['program']['nodes']), 13)
 
 
 class TestShorsExamples(unittest.TestCase):

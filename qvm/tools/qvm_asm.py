@@ -128,10 +128,16 @@ class AssemblyParser:
                 if value.startswith('"') and value.endswith('"'):
                     value = value[1:-1]
                 # Try to parse as number
-                elif value.isdigit():
-                    value = int(value)
-                elif value.replace('.', '', 1).isdigit():
-                    value = float(value)
+                else:
+                    try:
+                        # Try int first
+                        if '.' not in value:
+                            value = int(value)
+                        else:
+                            value = float(value)
+                    except ValueError:
+                        # Keep as string if not a valid number
+                        pass
                 
                 args_dict[key] = value
             else:
