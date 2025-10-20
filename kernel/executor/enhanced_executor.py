@@ -114,10 +114,15 @@ class EnhancedExecutor:
     
     def execute(self, qvm_graph: Dict[str, Any]) -> Dict[str, Any]:
         """
-        Execute a QVM graph.
+        Execute a QVM graph with automatic resource lifecycle management.
         
         CRITICAL: Graph must pass static verification before execution.
         NO GRAPH IS EXECUTED WITHOUT CERTIFICATION.
+        
+        Resource Lifecycle:
+        1. LOAD: Verify graph and prepare execution context
+        2. EXECUTE: Run graph operations
+        3. UNLOAD: Clean up resources (automatic, even on error)
         
         Args:
             qvm_graph: QVM graph in JSON format
@@ -127,6 +132,67 @@ class EnhancedExecutor:
         
         Raises:
             VerificationError: If graph fails static verification
+        """
+        # Track allocated resources for cleanup
+        allocated_qubits = []
+        
+        try:
+            # === PHASE 1: LOAD ===
+            # Verify and prepare execution context
+            self._load_graph(qvm_graph)
+            
+            # Parse graph
+            if isinstance(qvm_graph, str):
+                graph = json.loads(qvm_graph)
+            else:
+                graph = qvm_graph
+            
+            nodes = graph["program"]["nodes"]
+            global_caps = graph.get("caps", [])
+            
+            # Topological sort for execution order
+            execution_order = topo_schedule(nodes)
+            
+            # === PHASE 2: EXECUTE ===
+            # Execute nodes in order
+            for node in execution_order:
+                self._execute_node(node, global_caps)
+                
+                # Track allocations for cleanup
+                if node.get("op") == "ALLOC_LQ":
+                    allocated_qubits.extend(node.get("vqs", []))
+            
+            # === PHASE 3: UNLOAD (Success) ===
+            result = {
+                "status": "COMPLETED",
+                "events": dict(self.events),
+                "telemetry": self.resource_manager.get_telemetry(),
+                "execution_log": self.execution_log,
+            }
+            
+            return result
+            
+        except Exception as e:
+            # === PHASE 3: UNLOAD (Error) ===
+            # Log the error
+            self.execution_log.append(("ERROR", str(e)))
+            
+            # Re-raise the exception after cleanup
+            raise
+            
+        finally:
+            # ALWAYS clean up resources, success or failure
+            self._unload_graph(allocated_qubits)
+    
+    def _load_graph(self, qvm_graph: Dict[str, Any]):
+        """
+        LOAD phase: Verify graph and prepare execution context.
+        
+        Args:
+            qvm_graph: QVM graph to load
+        
+        Raises:
+            VerificationError: If graph fails verification
         """
         # GATE KEEPER: Static verification BEFORE execution
         if self.require_certification:
@@ -167,38 +233,42 @@ class EnhancedExecutor:
             # Log successful certification
             self.execution_log.append(("CERTIFIED", "static_verification_passed"))
         
-        # Reset resource manager for fresh execution
+        # Prepare fresh execution context
         self.resource_manager.reset()
         self.events.clear()
         self.execution_log.clear()
         self.qubit_tenants.clear()
         self.qubit_handles.clear()
         
-        # Parse graph
-        if isinstance(qvm_graph, str):
-            graph = json.loads(qvm_graph)
-        else:
-            graph = qvm_graph
+        self.execution_log.append(("LOAD", "graph_loaded_and_verified"))
+    
+    def _unload_graph(self, allocated_qubits: List[str]):
+        """
+        UNLOAD phase: Clean up all allocated resources.
         
-        nodes = graph["program"]["nodes"]
-        global_caps = graph.get("caps", [])
+        This is called automatically after execution (success or failure)
+        to ensure resources are properly released.
         
-        # Topological sort for execution order
-        execution_order = topo_schedule(nodes)
+        Args:
+            allocated_qubits: List of qubit IDs that were allocated
+        """
+        # Free any allocated qubits that weren't explicitly freed
+        if allocated_qubits:
+            try:
+                # Only free qubits that are still allocated
+                still_allocated = [
+                    qid for qid in allocated_qubits 
+                    if qid in self.resource_manager.logical_qubits
+                ]
+                
+                if still_allocated:
+                    self.resource_manager.free_logical_qubits(still_allocated)
+                    self.execution_log.append(("UNLOAD", f"freed_{len(still_allocated)}_qubits"))
+            except Exception as e:
+                # Log cleanup errors but don't fail
+                self.execution_log.append(("UNLOAD_ERROR", f"cleanup_failed: {e}"))
         
-        # Execute nodes in order
-        for node in execution_order:
-            self._execute_node(node, global_caps)
-        
-        # Collect results
-        result = {
-            "status": "COMPLETED",
-            "events": dict(self.events),
-            "telemetry": self.resource_manager.get_telemetry(),
-            "execution_log": self.execution_log,
-        }
-        
-        return result
+        self.execution_log.append(("UNLOAD", "resources_released"))
     
     def _execute_node(self, node: Dict[str, Any], global_caps: List[str]):
         """Execute a single node in the graph."""
