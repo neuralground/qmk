@@ -55,12 +55,27 @@ pip install -r requirements-dev.txt
 Includes:
 - ✅ Qiskit (IBM)
 - ✅ Cirq (Google)
-- ✅ Azure Quantum (Microsoft)
-- ✅ PyQuil (Rigetti)
+- ✅ Azure Quantum (Microsoft) - commented out, may need Azure setup
+- ✅ PyQuil (Rigetti) - commented out, requires Rust compiler
 - ✅ Basic scientific computing
 
 ```bash
 pip install -r requirements-quantum-frameworks.txt
+```
+
+### `requirements-optional.txt` - Optional Packages
+**Use for:** Packages requiring special setup
+
+Includes instructions for:
+- 🦀 PyQuil (requires Rust compiler)
+- ☁️ Azure Quantum (requires Azure credentials)
+- ⚡ Performance tools (numba, cython)
+- 🤖 ML frameworks (PyTorch, TensorFlow, PennyLane)
+- 🔬 Advanced quantum frameworks
+
+```bash
+# Install individually as documented in file
+# Example: pip install pyquil>=4.0.0
 ```
 
 ## Installation Guide
@@ -193,6 +208,22 @@ pip install torch tensorflow pennylane
 
 ### Installation Failures
 
+**PyQuil/Rust compilation errors:**
+```bash
+# Error: Failed to build qcs-sdk-python, qcs-api-client-common, quil
+# Solution: PyQuil requires Rust compiler
+
+# Install Rust first:
+curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
+source $HOME/.cargo/env
+
+# Then install PyQuil:
+pip install pyquil>=4.0.0
+
+# Or skip PyQuil (it's optional):
+# PyQuil is commented out in requirements.txt by default
+```
+
 **Qiskit issues:**
 ```bash
 # Try installing without dependencies first
@@ -202,14 +233,16 @@ pip install -r requirements-minimal.txt
 
 **Azure Quantum issues:**
 ```bash
-# Azure Quantum may require additional setup
-pip install azure-quantum --upgrade
+# Azure Quantum may require additional setup and credentials
+# It's commented out in requirements.txt by default
+# Install only if you have Azure Quantum access:
+pip install azure-quantum qsharp
 ```
 
 **Compilation errors:**
 ```bash
 # Install build tools
-pip install --upgrade setuptools wheel
+pip install --upgrade setuptools wheel pip
 ```
 
 ### Dependency Conflicts

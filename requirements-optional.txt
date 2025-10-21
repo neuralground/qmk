@@ -1,0 +1,54 @@
+# QMK - Optional Requirements
+# These packages require additional setup or may not work on all platforms
+# Install individually as needed
+
+# ============================================================================
+# PyQuil - Rigetti Quantum Computing
+# ============================================================================
+# Requires: Rust compiler
+# Install Rust first:
+#   curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
+#   source $HOME/.cargo/env
+# Then install PyQuil:
+#   pip install pyquil>=4.0.0
+
+# ============================================================================
+# Azure Quantum - Microsoft Quantum Development Kit
+# ============================================================================
+# May require additional Azure setup and credentials
+# Install if you have Azure Quantum access:
+#   pip install azure-quantum>=1.0.0
+#   pip install qsharp>=1.0.0
+
+# ============================================================================
+# Performance Optimization
+# ============================================================================
+# Numba - JIT compilation (may require LLVM)
+#   pip install numba>=0.57.0
+
+# Cython - C extensions (requires C compiler)
+#   pip install cython>=3.0.0
+
+# ============================================================================
+# Machine Learning for Quantum
+# ============================================================================
+# PyTorch - Deep learning framework
+#   pip install torch>=2.0.0
+
+# TensorFlow - Deep learning framework
+#   pip install tensorflow>=2.13.0
+
+# PennyLane - Quantum machine learning
+#   pip install pennylane>=0.32.0
+
+# ============================================================================
+# Advanced Quantum Frameworks
+# ============================================================================
+# ProjectQ - Open-source quantum computing framework
+#   pip install projectq>=0.7.0
+
+# Strawberry Fields - Photonic quantum computing
+#   pip install strawberryfields>=0.23.0
+
+# Amazon Braket SDK
+#   pip install amazon-braket-sdk>=1.50.0
