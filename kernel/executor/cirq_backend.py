@@ -199,8 +199,11 @@ class CirqBackend(QuantumBackend):
             if event_id in native_result.measurements:
                 # Get measurement result (single shot)
                 measurement = native_result.measurements[event_id][0]
-                # Convert numpy bool/int to Python int
-                events[event_id] = int(measurement)
+                # Convert numpy array to Python int (handle both scalar and array)
+                if hasattr(measurement, '__iter__'):
+                    events[event_id] = int(measurement[0])
+                else:
+                    events[event_id] = int(measurement)
         
         return events
     
