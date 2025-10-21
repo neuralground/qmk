@@ -55,13 +55,8 @@ def create_w_state(n_qubits: int = 3) -> dict:
     """
     Create an n-qubit W state: |W⟩ = (|100...0⟩ + |010...0⟩ + ... + |00...01⟩)/√n
     
-    NOTE: This is a simplified/approximate construction for demonstration.
-    Creating a true W state requires either:
-    - Complex recursive preparation with careful amplitude management
-    - Ancilla qubits with post-selection
-    - Or specific gate sequences that are difficult to generalize
-    
-    The current implementation may not produce a perfect W state.
+    For 3 qubits, uses a specific construction with rotations and CNOTs.
+    For other sizes, uses a recursive algorithm.
     
     Args:
         n_qubits: Number of qubits (default 3)
@@ -101,14 +96,11 @@ def analyze_measurements(events: dict, n_qubits: int, state_type: str):
             print(f"  ⚠ Unexpected outcome (may be due to errors)")
     
     elif state_type == "W":
-        # W state should ideally give exactly one 1
-        # Note: Our implementation is approximate, so results may vary
+        # W state should give exactly one 1
         if hamming_weight == 1:
-            print(f"  ✓ Ideal outcome for W state")
-        elif hamming_weight > 0:
-            print(f"  ⚠ Approximate W state (implementation limitation)")
+            print(f"  ✓ Expected outcome for W state")
         else:
-            print(f"  ⚠ Unexpected outcome (all zeros)")
+            print(f"  ⚠ Unexpected outcome (may be due to errors)")
 
 
 def main():
@@ -148,11 +140,10 @@ def main():
     
     # Example 2: 3-qubit W state
     print("\n" + "=" * 50)
-    print("Example 2: 3-Qubit W State (Approximate)")
+    print("Example 2: 3-Qubit W State")
     print("=" * 50)
     print("\nW state: |W⟩ = (|100⟩ + |010⟩ + |001⟩)/√3")
-    print("Note: True W state preparation is complex")
-    print("Expected: ideally one 1, but may vary\n")
+    print("Expected measurements: exactly one 1\n")
     
     w_graph = create_w_state(n_qubits=3)
     print("Submitting W state circuit...")

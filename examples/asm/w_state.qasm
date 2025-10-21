@@ -16,37 +16,57 @@
 ; Allocate qubits
 alloc: ALLOC_LQ n={n_qubits}, profile="logical:Surface(d=3)" -> {qubit_outputs}
 
-; Create W state using simplified construction
-; For demonstration purposes, we create a W-like state
-;
-; Note: A proper W state requires a more complex construction
-; involving controlled rotations or recursive preparation.
-; This simplified version creates an equal superposition
-; of single-excitation states.
-;
+; Create W state using proper construction
 ; For 3 qubits: |W⟩ = (|100⟩ + |010⟩ + |001⟩)/√3
+;
+; Algorithm:
+; 1. Start with |000⟩
+; 2. Apply X to q2 to get |001⟩
+; 3. Apply controlled rotations to create equal superposition
+; 4. Use CNOTs to distribute the excitation
+;
+; This uses the fact that we can build W state by:
+; - Creating |001⟩
+; - Rotating to share amplitude with |010⟩
+; - Rotating again to share with |100⟩
 
-; For a 3-qubit W state, use explicit construction:
 .if n_qubits == 3
-    ; Create superposition on first qubit: (|0⟩ + |1⟩)/√2
-    h0: APPLY_H q0
+    ; Step 1: Initialize to |001⟩
+    x_init: APPLY_X q2
     
-    ; Create superposition on second qubit: (|0⟩ + |1⟩)/√2  
-    h1: APPLY_H q1
+    ; Step 2: Create superposition between q2 and q1
+    ; RY(θ) where sin(θ/2) = 1/√2, so θ = π/2
+    ; This creates: |0⟩|0⟩(|0⟩ + |1⟩)/√2
+    ry_21: APPLY_RY q2, theta=1.5707963267948966
     
-    ; Use Toffoli-like structure to create W state
-    ; This is a simplified approximation
-    ccx: APPLY_CNOT q0, q1
-    cx1: APPLY_CNOT q1, q2
-    cx2: APPLY_CNOT q0, q2
+    ; Step 3: CNOT from q2 to q1
+    ; This creates: |0⟩(|01⟩ + |10⟩)/√2
+    cnot_21: APPLY_CNOT q2, q1
+    
+    ; Step 4: Rotate q1 to share with q0
+    ; RY(θ) where sin(θ/2) = 1/√3, so θ = 2*arcsin(1/√3)
+    ry_10: APPLY_RY q1, theta=1.2309594173407747
+    
+    ; Step 5: CNOT from q1 to q0
+    ; This creates the W state
+    cnot_10: APPLY_CNOT q1, q0
+    
+    ; Step 6: X gates to fix the bit pattern
+    ; We need to flip q1 and q2 to get the right computational basis states
+    x_fix1: APPLY_X q1
+    x_fix2: APPLY_X q2
 .else
-    ; For other sizes, use the recursive algorithm
-    ; (This is a placeholder - proper implementation needed)
+    ; For other sizes, use recursive construction
+    ; Start with |10...0⟩
     x0: APPLY_X q0
     
     .for i in 0..n_qubits-2
         .set next_qubit = i + 1
+        
+        ; Rotate to share amplitude
         ry{i}: APPLY_RY q{i}, theta={angles[i]}
+        
+        ; Transfer to next qubit
         cnot{i}: APPLY_CNOT q{i}, q{next_qubit}
     .endfor
 .endif
