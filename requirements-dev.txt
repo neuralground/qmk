@@ -1,0 +1,43 @@
+# QMK - Development Requirements
+# Install with: pip install -r requirements-dev.txt
+# This includes everything from requirements.txt plus dev tools
+
+-r requirements.txt
+
+# ============================================================================
+# Additional Development Tools
+# ============================================================================
+
+# Advanced testing
+pytest-benchmark>=4.0.0  # Performance benchmarking
+pytest-timeout>=2.1.0  # Test timeouts
+pytest-mock>=3.11.0  # Mocking support
+hypothesis>=6.82.0  # Property-based testing
+
+# Code quality and analysis
+coverage>=7.2.0  # Coverage analysis
+radon>=6.0.0  # Code complexity metrics
+bandit>=1.7.0  # Security linting
+safety>=2.3.0  # Dependency security checks
+
+# Pre-commit hooks
+pre-commit>=3.3.0
+
+# Profiling and debugging
+line-profiler>=4.0.0  # Line-by-line profiling
+memory-profiler>=0.61.0  # Memory profiling
+py-spy>=0.3.0  # Sampling profiler
+ipdb>=0.13.0  # IPython debugger
+
+# Documentation
+sphinx-autodoc-typehints>=1.23.0  # Type hints in docs
+sphinx-copybutton>=0.5.0  # Copy button for code blocks
+myst-parser>=2.0.0  # Markdown support in Sphinx
+
+# Build tools
+build>=0.10.0  # PEP 517 build frontend
+twine>=4.0.0  # Package upload to PyPI
+wheel>=0.40.0  # Wheel package format
+
+# Git tools
+gitpython>=3.1.0  # Git integration

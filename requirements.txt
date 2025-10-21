@@ -1,0 +1,100 @@
+# QMK - Quantum Microkernel Requirements
+# Install with: pip install -r requirements.txt
+
+# ============================================================================
+# Core Dependencies
+# ============================================================================
+
+# Testing frameworks
+pytest>=7.4.0
+pytest-cov>=4.1.0  # Coverage reporting
+pytest-asyncio>=0.21.0  # Async test support
+pytest-xdist>=3.3.0  # Parallel test execution
+
+# Code quality
+black>=23.0.0  # Code formatting
+flake8>=6.0.0  # Linting
+mypy>=1.5.0  # Type checking
+pylint>=2.17.0  # Additional linting
+
+# ============================================================================
+# Quantum Frameworks
+# ============================================================================
+
+# Qiskit - IBM's quantum computing framework
+qiskit>=1.0.0
+qiskit-aer>=0.13.0  # High-performance simulator
+qiskit-ibm-runtime>=0.17.0  # IBM Quantum runtime
+
+# Cirq - Google's quantum computing framework
+cirq>=1.3.0
+cirq-core>=1.3.0
+
+# Azure Quantum - Microsoft's quantum development kit
+azure-quantum>=1.0.0
+qsharp>=1.0.0  # Q# language support
+
+# PyQuil - Rigetti's quantum computing framework
+pyquil>=4.0.0
+
+# ============================================================================
+# Scientific Computing
+# ============================================================================
+
+numpy>=1.24.0
+scipy>=1.10.0
+sympy>=1.12  # Symbolic mathematics
+
+# ============================================================================
+# Visualization
+# ============================================================================
+
+matplotlib>=3.7.0
+seaborn>=0.12.0  # Statistical visualization
+plotly>=5.14.0  # Interactive plots
+
+# ============================================================================
+# Development Tools
+# ============================================================================
+
+jupyter>=1.0.0  # Jupyter notebooks
+ipython>=8.12.0  # Enhanced Python shell
+jupyterlab>=4.0.0  # JupyterLab interface
+
+# Documentation
+sphinx>=7.0.0  # Documentation generation
+sphinx-rtd-theme>=1.2.0  # Read the Docs theme
+
+# ============================================================================
+# Utilities
+# ============================================================================
+
+# JSON and data handling
+pydantic>=2.0.0  # Data validation
+jsonschema>=4.17.0  # JSON schema validation
+
+# Logging and monitoring
+structlog>=23.1.0  # Structured logging
+rich>=13.4.0  # Rich terminal output
+
+# Async support
+asyncio>=3.4.3
+aiofiles>=23.1.0  # Async file operations
+
+# ============================================================================
+# Optional: Performance and Optimization
+# ============================================================================
+
+# Uncomment if needed for performance
+# numba>=0.57.0  # JIT compilation
+# cython>=3.0.0  # C extensions
+# networkx>=3.1  # Graph algorithms
+
+# ============================================================================
+# Optional: Machine Learning (for quantum ML)
+# ============================================================================
+
+# Uncomment if needed for quantum ML
+# torch>=2.0.0  # PyTorch
+# tensorflow>=2.13.0  # TensorFlow
+# pennylane>=0.32.0  # Quantum ML framework
