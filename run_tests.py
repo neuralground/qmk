@@ -61,26 +61,36 @@ def main():
     print("=" * 70)
     print()
     
-    # Run unit tests
-    print("Running unit tests...")
-    print("-" * 70)
-    unit_success = run_tests("tests/unit")
+    all_success = True
     
-    print()
+    # Test directories to run
+    test_dirs = [
+        ("tests/qvm/lib", "Library component tests"),
+        ("tests/examples", "Example circuit tests"),
+        ("tests/qvm", "QVM tests"),
+        ("tests/unit", "Unit tests"),
+        ("tests/integration", "Integration tests"),
+    ]
     
-    # Run integration tests (if any exist)
-    integration_dir = os.path.join(ROOT, "tests/integration")
-    if os.path.exists(integration_dir) and any(f.startswith("test_") for f in os.listdir(integration_dir)):
-        print("Running integration tests...")
-        print("-" * 70)
-        integration_success = run_tests("tests/integration")
-    else:
-        print("No integration tests found.")
-        integration_success = True
+    for test_dir, description in test_dirs:
+        full_path = os.path.join(ROOT, test_dir)
+        if os.path.exists(full_path):
+            # Check if there are any test files
+            has_tests = False
+            for root, dirs, files in os.walk(full_path):
+                if any(f.startswith("test_") and f.endswith(".py") for f in files):
+                    has_tests = True
+                    break
+            
+            if has_tests:
+                print(f"Running {description}...")
+                print("-" * 70)
+                success = run_tests(test_dir)
+                all_success = all_success and success
+                print()
     
     # Overall result
-    print()
-    if unit_success and integration_success:
+    if all_success:
         print("✅ ALL TESTS PASSED")
         return 0
     else:
