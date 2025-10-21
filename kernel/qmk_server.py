@@ -38,7 +38,7 @@ class QMKServer:
         # Create executor with all capabilities enabled
         all_caps = {cap: True for cap in self.session_manager.ALL_CAPABILITIES}
         self.executor = EnhancedExecutor(max_physical_qubits=10000, caps=all_caps)
-        self.job_manager = JobManager(executor=self.executor)
+        self.job_manager = JobManager(executor=self.executor, session_manager=self.session_manager)
         # Get resource manager from executor
         self.resource_manager = self.executor.resource_manager
         

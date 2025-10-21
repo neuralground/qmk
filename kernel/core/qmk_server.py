@@ -36,7 +36,7 @@ class QMKServer:
         self.session_manager = SessionManager()
         self.resource_manager = EnhancedResourceManager()
         self.executor = EnhancedExecutor(self.resource_manager)
-        self.job_manager = JobManager(executor=self.executor)
+        self.job_manager = JobManager(executor=self.executor, session_manager=self.session_manager)
         
         # Initialize RPC server
         self.rpc_server = RPCServer(socket_path)

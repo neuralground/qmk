@@ -15,7 +15,7 @@ class SessionQuota:
     """Resource quotas for a session."""
     max_logical_qubits: int = 100
     max_channels: int = 10
-    max_jobs: int = 5
+    max_jobs: int = 50  # Increased from 5 to handle test suites
     max_physical_qubits: int = 10000
 
 
