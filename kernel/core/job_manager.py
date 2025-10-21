@@ -133,14 +133,16 @@ class JobManager:
     - Result collection
     """
     
-    def __init__(self, executor=None):
+    def __init__(self, executor=None, session_manager=None):
         """
         Initialize job manager.
         
         Args:
             executor: Optional executor instance for running jobs
+            session_manager: Optional session manager for quota cleanup
         """
         self.executor = executor
+        self.session_manager = session_manager
         
         # Job tracking
         self.jobs: Dict[str, Job] = {}
@@ -441,11 +443,19 @@ class JobManager:
                     job.execution_context = result.get("execution_context", {})
                     job.progress.nodes_executed = len(job.graph.get("nodes", []))
                     job.progress.nodes_total = len(job.graph.get("nodes", []))
+                    
+                    # Clean up quota
+                    if self.session_manager:
+                        self.session_manager.unregister_job(job.session_id, job_id)
             else:
                 # No executor - just mark as completed
                 with self._lock:
                     job.state = JobState.COMPLETED
                     job.completed_at = time.time()
+                    
+                    # Clean up quota
+                    if self.session_manager:
+                        self.session_manager.unregister_job(job.session_id, job_id)
         
         except Exception as e:
             # Handle execution errors
@@ -458,6 +468,10 @@ class JobManager:
                         "message": str(e),
                         "type": type(e).__name__
                     }
+                    
+                    # Clean up quota even on failure
+                    if self.session_manager:
+                        self.session_manager.unregister_job(job.session_id, job_id)
         
         finally:
             # Notify waiters
