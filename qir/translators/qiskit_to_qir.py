@@ -234,10 +234,28 @@ class QiskitToQIRConverter:
             
             inst_id += 1
         
+        # Measure any unmeasured qubits to avoid resource leaks
+        measured_qubits = set()
+        for node in nodes:
+            if node.get("op") == "MEASURE_Z":
+                measured_qubits.update(node.get("vqs", []))
+        
+        for qubit_name in qubit_names:
+            if qubit_name not in measured_qubits:
+                result_name = f"m{qubit_name[1:]}_unused"
+                measurement_results.append(result_name)
+                nodes.append({
+                    "id": f"m_unused_{qubit_name}",
+                    "op": "MEASURE_Z",
+                    "vqs": [qubit_name],
+                    "produces": [result_name]
+                })
+        
         return {
             "program": {"nodes": nodes},
             "resources": {
                 "vqs": qubit_names,
                 "events": measurement_results
-            }
+            },
+            "caps": ["CAP_ALLOC", "CAP_MEASURE"]
         }
