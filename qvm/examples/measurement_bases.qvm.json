@@ -62,17 +62,12 @@
         "op": "MEASURE_Y",
         "vqs": ["q2"],
         "produces": ["m_y"]
-      },
-      
-      {
-        "id": "free",
-        "op": "FREE_LQ",
-        "vqs": ["q0", "q1", "q2"]
       }
     ]
   },
   "resources": {
     "vqs": ["q0", "q1", "q2"],
     "events": ["m_z", "m_x", "m_y"]
-  }
+  },
+  "caps": ["CAP_ALLOC", "CAP_MEASURE"]
 }
