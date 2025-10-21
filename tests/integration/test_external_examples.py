@@ -194,12 +194,7 @@ class TestIBMQiskitExamples(unittest.TestCase):
             
             node_id += 1
         
-        # Free qubits
-        nodes.append({
-            'id': 'free',
-            'op': 'FREE_LQ',
-            'vqs': vqs
-        })
+        # Don't add FREE_LQ - measurements consume qubits
         
         return {
             'version': '0.1',
@@ -280,8 +275,7 @@ class TestMicrosoftQSharpExamples(unittest.TestCase):
                     {'id': 'h', 'op': 'APPLY_H', 'vqs': ['q0']},
                     {'id': 'cnot', 'op': 'APPLY_CNOT', 'vqs': ['q0', 'q1']},
                     {'id': 'm0', 'op': 'MEASURE_Z', 'vqs': ['q0'], 'produces': ['m0']},
-                    {'id': 'm1', 'op': 'MEASURE_Z', 'vqs': ['q1'], 'produces': ['m1']},
-                    {'id': 'free', 'op': 'FREE_LQ', 'vqs': ['q0', 'q1']}
+                    {'id': 'm1', 'op': 'MEASURE_Z', 'vqs': ['q1'], 'produces': ['m1']}
                 ]
             },
             'resources': {'vqs': ['q0', 'q1'], 'chs': [], 'events': ['m0', 'm1']},
@@ -319,8 +313,7 @@ class TestMicrosoftQSharpExamples(unittest.TestCase):
                     {'id': 'alloc', 'op': 'ALLOC_LQ', 'args': {'n': 1, 'profile': 'logical:surface_code(d=3)'}, 
                      'vqs': ['q0'], 'caps': ['CAP_ALLOC']},
                     {'id': 'h', 'op': 'APPLY_H', 'vqs': ['q0']},
-                    {'id': 'm0', 'op': 'MEASURE_Z', 'vqs': ['q0'], 'produces': ['m0']},
-                    {'id': 'free', 'op': 'FREE_LQ', 'vqs': ['q0']}
+                    {'id': 'm0', 'op': 'MEASURE_Z', 'vqs': ['q0'], 'produces': ['m0']}
                 ]
             },
             'resources': {'vqs': ['q0'], 'chs': [], 'events': ['m0']},

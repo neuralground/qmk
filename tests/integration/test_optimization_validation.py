@@ -34,7 +34,6 @@ class TestGateCancellationValidation(unittest.TestCase):
     """Validate gate cancellation against native execution."""
     
     @unittest.skipUnless(HAS_QISKIT, "Qiskit not installed")
-    @unittest.skip("TODO: Fix Qiskit to QVM conversion - has verification errors")
     def test_bell_state_with_redundancy(self):
         """
         Test Bell state with redundant gates.
@@ -84,7 +83,6 @@ class TestGateCancellationValidation(unittest.TestCase):
         self.assertGreater(opt_corr, 0.90, "Optimized correlation too low")
     
     @unittest.skipUnless(HAS_QISKIT, "Qiskit not installed")
-    @unittest.skip("TODO: Fix Qiskit to QVM conversion - has verification errors")
     def test_optimized_vs_qiskit(self):
         """
         Compare optimized QMK execution with Qiskit.

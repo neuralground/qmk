@@ -139,12 +139,7 @@ class IRToQVMConverter:
                 
                 nodes.append(node)
         
-        # Add deallocation node
-        nodes.append({
-            'id': 'free',
-            'op': 'FREE_LQ',
-            'vqs': vqs
-        })
+        # Don't add FREE_LQ - measurements consume qubits
         
         # Build QVM graph
         return {
