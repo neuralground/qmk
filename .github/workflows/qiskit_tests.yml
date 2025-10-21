@@ -1,0 +1,54 @@
+name: Qiskit Path Equivalence Tests
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+  # Allow manual trigger
+  workflow_dispatch:
+
+jobs:
+  qiskit-equivalence:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: ['3.10', '3.11', '3.12']
+
+    steps:
+    - uses: actions/checkout@v3
+    
+    - name: Set up Python ${{ matrix.python-version }}
+      uses: actions/setup-python@v4
+      with:
+        python-version: ${{ matrix.python-version }}
+    
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install qiskit qiskit-aer
+        # Install any other project dependencies if needed
+    
+    - name: Start QMK server
+      run: |
+        python -m kernel.qmk_server &
+        SERVER_PID=$!
+        echo "QMK_SERVER_PID=$SERVER_PID" >> $GITHUB_ENV
+        # Wait for server to start
+        sleep 5
+    
+    - name: Run Qiskit path equivalence tests
+      run: |
+        python run_qiskit_tests.py
+    
+    - name: Stop QMK server
+      if: always()
+      run: |
+        if [ ! -z "$QMK_SERVER_PID" ]; then
+          kill $QMK_SERVER_PID || true
+        fi
+    
+    - name: Test summary
+      if: always()
+      run: |
+        echo "Qiskit equivalence tests completed for Python ${{ matrix.python-version }}"
