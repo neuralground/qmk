@@ -24,7 +24,8 @@ from qir.translators.qiskit_to_qir import QiskitToQIRConverter
 from qir.translators.cirq_to_qir import CirqToQIRConverter
 
 # Import algorithm examples
-sys.path.insert(0, str(ROOT / "examples"))
+sys.path.insert(0, str(ROOT / "examples" / "qiskit"))
+sys.path.insert(0, str(ROOT / "examples" / "cirq"))
 import qiskit_algorithms
 import cirq_algorithms
 
