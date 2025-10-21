@@ -28,6 +28,8 @@ except ImportError:
     QISKIT_AVAILABLE = False
 
 from runtime.client.qsyscall_client import QSyscallClient
+from kernel.executor.enhanced_executor import EnhancedExecutor
+from kernel.executor.qiskit_aer_backend import QiskitAerBackend
 
 
 def convert_qiskit_to_qvm(circuit: QuantumCircuit) -> dict:
@@ -121,34 +123,7 @@ def get_possible_outcomes(counts: Dict[str, int]) -> Set[str]:
 class TestQiskitPathEquivalence(unittest.TestCase):
     """Test that Qiskit circuits produce equivalent results through both paths."""
     
-    @classmethod
-    def setUpClass(cls):
-        """Set up QMK client for all tests."""
-        try:
-            cls.client = QSyscallClient(socket_path="/tmp/qmk.sock")
-            cls.qmk_available = True
-        except ConnectionRefusedError:
-            cls.qmk_available = False
-    
-    def setUp(self):
-        """Set up before each test - create fresh client and session."""
-        if self.qmk_available:
-            try:
-                # Create a fresh client for each test to avoid quota issues
-                self.client = QSyscallClient(socket_path="/tmp/qmk.sock")
-                self.client.negotiate_capabilities([
-                    "CAP_ALLOC",
-                    "CAP_COMPUTE",
-                    "CAP_MEASURE"
-                ])
-            except Exception as e:
-                self.skipTest(f"Failed to negotiate capabilities: {e}")
-    
-    def tearDown(self):
-        """Clean up after each test."""
-        # Small delay to let server process quota cleanup
-        import time
-        time.sleep(0.05)  # 50ms delay between tests
+    # No setup needed - using direct backend execution
     
     def run_native_qiskit(self, circuit: QuantumCircuit, shots: int = 1000) -> Dict[str, int]:
         """Run circuit using native Qiskit Aer."""
@@ -158,19 +133,20 @@ class TestQiskitPathEquivalence(unittest.TestCase):
         return result.get_counts()
     
     def run_qmk_path(self, circuit: QuantumCircuit, shots: int = 20) -> Dict[str, int]:
-        """Run circuit through QMK path."""
-        if not self.qmk_available:
-            self.skipTest("QMK server not running")
-        
+        """Run circuit through QMK path with Aer backend."""
         qvm_graph = convert_qiskit_to_qvm(circuit)
+        
+        # Create executor with Aer backend
+        backend = QiskitAerBackend(seed=42)
+        executor = EnhancedExecutor(backend=backend, seed=42)
         
         # Run multiple times to get distribution
         counts = {}
         for _ in range(shots):
-            result = self.client.submit_and_wait(qvm_graph, timeout_ms=10000)
+            result = executor.execute(qvm_graph)
             
-            if result['state'] != 'COMPLETED':
-                raise RuntimeError(f"Job failed: {result.get('error', 'Unknown')}")
+            if result.get('status') != 'COMPLETED':
+                raise RuntimeError(f"Execution failed: {result.get('error', 'Unknown')}")
             
             # Extract bitstring
             events = result['events']
