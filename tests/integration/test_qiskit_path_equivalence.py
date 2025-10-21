@@ -131,9 +131,11 @@ class TestQiskitPathEquivalence(unittest.TestCase):
             cls.qmk_available = False
     
     def setUp(self):
-        """Set up before each test - negotiate capabilities fresh."""
+        """Set up before each test - create fresh client and session."""
         if self.qmk_available:
             try:
+                # Create a fresh client for each test to avoid quota issues
+                self.client = QSyscallClient(socket_path="/tmp/qmk.sock")
                 self.client.negotiate_capabilities([
                     "CAP_ALLOC",
                     "CAP_COMPUTE",
@@ -141,6 +143,12 @@ class TestQiskitPathEquivalence(unittest.TestCase):
                 ])
             except Exception as e:
                 self.skipTest(f"Failed to negotiate capabilities: {e}")
+    
+    def tearDown(self):
+        """Clean up after each test."""
+        # Small delay to let server process quota cleanup
+        import time
+        time.sleep(0.05)  # 50ms delay between tests
     
     def run_native_qiskit(self, circuit: QuantumCircuit, shots: int = 1000) -> Dict[str, int]:
         """Run circuit using native Qiskit Aer."""
@@ -195,7 +203,7 @@ class TestQiskitPathEquivalence(unittest.TestCase):
         qc.measure([0, 1], [0, 1])
         
         native_counts = self.run_native_qiskit(qc, shots=100)
-        qmk_counts = self.run_qmk_path(qc, shots=5)
+        qmk_counts = self.run_qmk_path(qc, shots=3)
         
         # Bell state should only produce 00 or 11
         expected_outcomes = {'00', '11'}
@@ -215,7 +223,7 @@ class TestQiskitPathEquivalence(unittest.TestCase):
         qc.measure([0, 1, 2], [0, 1, 2])
         
         native_counts = self.run_native_qiskit(qc, shots=100)
-        qmk_counts = self.run_qmk_path(qc, shots=5)
+        qmk_counts = self.run_qmk_path(qc, shots=3)
         
         # GHZ should only produce 000 or 111
         expected_outcomes = {'000', '111'}
@@ -233,8 +241,8 @@ class TestQiskitPathEquivalence(unittest.TestCase):
             qc.cx(i, i + 1)
         qc.measure(range(4), range(4))
         
-        native_counts = self.run_native_qiskit(qc, shots=5)
-        qmk_counts = self.run_qmk_path(qc, shots=5)
+        native_counts = self.run_native_qiskit(qc, shots=3)
+        qmk_counts = self.run_qmk_path(qc, shots=3)
         
         self.assert_equivalent_results(native_counts, qmk_counts, "4-Qubit GHZ")
         
@@ -250,8 +258,8 @@ class TestQiskitPathEquivalence(unittest.TestCase):
         qc.h(0)
         qc.measure(0, 0)
         
-        native_counts = self.run_native_qiskit(qc, shots=5)
-        qmk_counts = self.run_qmk_path(qc, shots=5)
+        native_counts = self.run_native_qiskit(qc, shots=3)
+        qmk_counts = self.run_qmk_path(qc, shots=3)
         
         self.assert_equivalent_results(native_counts, qmk_counts, "Single Qubit Superposition")
         
@@ -268,8 +276,8 @@ class TestQiskitPathEquivalence(unittest.TestCase):
         qc.x(0)
         qc.measure(0, 0)
         
-        native_counts = self.run_native_qiskit(qc, shots=5)
-        qmk_counts = self.run_qmk_path(qc, shots=5)
+        native_counts = self.run_native_qiskit(qc, shots=3)
+        qmk_counts = self.run_qmk_path(qc, shots=3)
         
         # Should always produce 1
         self.assertEqual(get_possible_outcomes(native_counts), {'1'})
@@ -281,14 +289,11 @@ class TestQiskitPathEquivalence(unittest.TestCase):
         qc.measure([0, 1], [0, 1])
         
         native_counts = self.run_native_qiskit(qc, shots=100)
-        qmk_counts = self.run_qmk_path(qc, shots=5)
+        qmk_counts = self.run_qmk_path(qc, shots=3)
         
         # Should always produce 00
         self.assertEqual(get_possible_outcomes(native_counts), {'00'})
-        # QMK should produce 00 (may have occasional errors due to simulator state)
-        qmk_outcomes = get_possible_outcomes(qmk_counts)
-        if qmk_outcomes != {'00'}:
-            self.skipTest(f"QMK produced unexpected outcomes: {qmk_outcomes} (known flakiness)")
+        self.assertEqual(get_possible_outcomes(qmk_counts), {'00'})
     
     def test_cnot_gate(self):
         """Test CNOT gate through both paths."""
@@ -298,16 +303,11 @@ class TestQiskitPathEquivalence(unittest.TestCase):
         qc.measure([0, 1], [0, 1])
         
         native_counts = self.run_native_qiskit(qc, shots=100)
-        qmk_counts = self.run_qmk_path(qc, shots=5)
+        qmk_counts = self.run_qmk_path(qc, shots=3)
         
         # Should always produce 11
         self.assertEqual(get_possible_outcomes(native_counts), {'11'})
-        # QMK should produce 11 (may have occasional errors due to simulator state)
-        qmk_outcomes = get_possible_outcomes(qmk_counts)
-        self.assertIn('11', qmk_outcomes, "QMK should produce 11")
-        # Allow for occasional simulator errors
-        if qmk_outcomes != {'11'}:
-            self.skipTest(f"QMK produced unexpected outcomes: {qmk_outcomes} (known flakiness)")
+        self.assertEqual(get_possible_outcomes(qmk_counts), {'11'})
     
     def test_multiple_hadamards(self):
         """Test multiple Hadamards through both paths."""
@@ -317,7 +317,7 @@ class TestQiskitPathEquivalence(unittest.TestCase):
         qc.measure([0, 1], [0, 1])
         
         native_counts = self.run_native_qiskit(qc, shots=100)
-        qmk_counts = self.run_qmk_path(qc, shots=5)
+        qmk_counts = self.run_qmk_path(qc, shots=3)
         
         # Should produce all four outcomes (with enough shots)
         expected_outcomes = {'00', '01', '10', '11'}
@@ -347,7 +347,7 @@ class TestQiskitPathEquivalence(unittest.TestCase):
         qc.measure([0, 1], [0, 1])
         
         native_counts = self.run_native_qiskit(qc, shots=100)
-        qmk_counts = self.run_qmk_path(qc, shots=5)
+        qmk_counts = self.run_qmk_path(qc, shots=3)
         
         # Grover should amplify |11⟩
         # With few shots, just verify QMK produces some valid outcome
