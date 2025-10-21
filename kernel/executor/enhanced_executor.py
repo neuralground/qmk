@@ -63,7 +63,8 @@ class EnhancedExecutor:
                  capability_system: Optional[CapabilitySystem] = None,
                  capability_token: Optional[CapabilityToken] = None,
                  require_certification: bool = True,
-                 strict_verification: bool = True):
+                 strict_verification: bool = True,
+                 backend: Optional[Any] = None):
         """
         Initialize executor.
         
@@ -77,7 +78,10 @@ class EnhancedExecutor:
             capability_token: Optional capability token for this execution
             require_certification: If True, graphs must be certified before execution (RECOMMENDED)
             strict_verification: If True, warnings are treated as errors in verification
+            backend: Optional quantum backend (QiskitAerBackend, CirqBackend, etc.)
+                    If None, uses simplified logical qubit simulator (default, has limitations)
         """
+        self.backend = backend
         self.resource_manager = EnhancedResourceManager(
             max_physical_qubits=max_physical_qubits,
             seed=seed
@@ -153,7 +157,7 @@ class EnhancedExecutor:
         
         Resource Lifecycle:
         1. LOAD: Verify graph and prepare execution context
-        2. EXECUTE: Run graph operations
+        2. EXECUTE: Run graph operations (via backend if provided)
         3. UNLOAD: Clean up resources (automatic, even on error)
         
         Args:
@@ -165,6 +169,21 @@ class EnhancedExecutor:
         Raises:
             VerificationError: If graph fails static verification
         """
+        # If backend is provided, use it for execution
+        if self.backend is not None:
+            # Verify graph first
+            self._load_graph(qvm_graph)
+            
+            # Execute on backend
+            result = self.backend.execute_graph(qvm_graph)
+            
+            # Add status if not present
+            if "status" not in result:
+                result["status"] = "COMPLETED"
+            
+            return result
+        
+        # Otherwise, use default logical qubit simulator
         # Track allocated resources for cleanup
         allocated_qubits = []
         
