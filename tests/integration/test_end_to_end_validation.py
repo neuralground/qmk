@@ -229,7 +229,8 @@ class TestEndToEndValidation(unittest.TestCase):
             "resources": {
                 "vqs": ["q0", "q1"],
                 "events": ["m0", "m1"]
-            }
+            },
+            "caps": ["CAP_ALLOC", "CAP_MEASURE"]
         }
     
     def _create_ghz_state_qvm(self) -> dict:
@@ -254,7 +255,8 @@ class TestEndToEndValidation(unittest.TestCase):
             "resources": {
                 "vqs": ["q0", "q1", "q2"],
                 "events": ["m0", "m1", "m2"]
-            }
+            },
+            "caps": ["CAP_ALLOC", "CAP_MEASURE"]
         }
     
     def _create_simple_qvm(self) -> dict:
@@ -276,7 +278,8 @@ class TestEndToEndValidation(unittest.TestCase):
             "resources": {
                 "vqs": ["q0", "q1"],
                 "events": ["m0", "m1"]
-            }
+            },
+            "caps": ["CAP_ALLOC", "CAP_MEASURE"]
         }
 
 

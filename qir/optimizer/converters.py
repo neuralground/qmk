@@ -150,7 +150,7 @@ class IRToQVMConverter:
                 'chs': [],
                 'events': list(circuit.results)
             },
-            'caps': ['CAP_ALLOC']
+            'caps': ['CAP_ALLOC', 'CAP_MEASURE']
         }
 
 

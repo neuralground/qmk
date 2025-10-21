@@ -8,7 +8,7 @@ Supported frameworks:
 - Cirq
 """
 
-from .qiskit_to_qir import QiskitToQIR
-from .cirq_to_qir import CirqToQIR
+from .qiskit_to_qir import QiskitToQIRConverter
+from .cirq_to_qir import CirqToQIRConverter
 
-__all__ = ['QiskitToQIR', 'CirqToQIR']
+__all__ = ['QiskitToQIRConverter', 'CirqToQIRConverter']
